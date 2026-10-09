@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'screens/request_example.dart';
+import 'theme/app_theme.dart';
+import 'package:crum_mobile/screens/login.dart';
 
 void main() {
   runApp(const MainApp());
@@ -11,9 +12,15 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
+      theme: AppTheme.light,
       //home: Scaffold(body: Center(child: Text('Hello World!'))),
-      home: RequestExample(), // Ejemplo de solicitud HTTP
+      //home: RequestExample(), // Ejemplo de solicitud HTTP,
+      home: LoginScreen(
+        onLogin: (email, password) async {
+          // TODO: conectar con el servicio de autenticación.
+        },
+      ),
     );
   }
 }
