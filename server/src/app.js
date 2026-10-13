@@ -1,68 +1,43 @@
-import express from 'express';
-import helmet from 'helmet';
-import cors from 'cors';
-import {query} from './config/dataBase.js';
+import "dotenv/config";
+import express from "express";
+import helmet from "helmet";
+import cors from "cors";
 
-import registerUserRoutes from './routes/registerUserRoutes.js';
+import { query } from "./config/database.js";
 
-//initialize express
+import notFound from "./middlewares/not-found.middleware.js";
+import errorHandler from "./middlewares/error-handler.middleware.js";
+
+import registerUserRoutes from "./routes/registerUserRoutes.js";
+import userRoutes from "./routes/users.route.js";
+
 const app = express();
+const PORT = process.env.PORT || 3000;
 
-//get port from enviroment 
-const PORT = Number(process.env.PORT) || 3000;
-
-//milddleware
+// Middlewares globales
 app.use(helmet());
 app.use(cors());
 app.use(express.json());
 
+// Rutas de la API
+app.use("/register/user", registerUserRoutes);
+app.use("/users", userRoutes);
 
-//Register route
-app.use('/register/user', registerUserRoutes);
+// Manejo de errores
+app.use(notFound);
+app.use(errorHandler);
 
-
-//Error route
-
-app.use((res) => {
-  return res.status(404).json({
-    status: 'error',
-    message: 'Ruta no encontrada'
-  });
-});
-
-//Error global not round
-
-app.use((err, res) => {
-  console.error('Error no controlado:', err);
-  res.status(500).json({
-    status: 'error',
-    message: 'Error interno del servidor'
-  });
-});
-
-
-
-app.get('/api/test-db', async (req, res) => {
+// Iniciar el servidor y verificar la conexión a la base de datos
+async function startServer() {
   try {
-    const result = await query('SELECT * FROM usuarios');
-    res.json({
-      status: 'success',
-      mensaje: 'Base de datos conectada correctamente',
-      data: result.rows[0],
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
     });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
 
-//listen to port
-app.listen(PORT, ()=>{
-    console.log(`Server Sicegemex running on port ${PORT}`);
-})
-
-try {
-    await query('SELECT 1');
-    console.log('📦 Pool de PostgreSQL listo para recibir consultas');
+    await query("SELECT 1");
   } catch (error) {
-    console.error('⚠️ No se pudo conectar a PostgreSQL:', error.message);
+    console.error(error.message);
   }
+}
+
+startServer();

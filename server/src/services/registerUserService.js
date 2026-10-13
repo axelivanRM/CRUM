@@ -1,4 +1,4 @@
-import {query} from '../config/dataBase.js';
+import {query} from '../config/database.js';
 
 async function validateUserAdmin(user, rol){
 
