@@ -3,6 +3,8 @@ import helmet from 'helmet';
 import cors from 'cors';
 import {query} from './config/dataBase.js';
 
+import registerUserRoutes from './routes/registerUserRoutes.js';
+
 //initialize express
 const app = express();
 
@@ -14,13 +16,31 @@ app.use(helmet());
 app.use(cors());
 app.use(express.json());
 
-//test route
-app.get('/health', (req, res) =>{
-    res.status(200).json({
-        status: 'ok',
-        mesaje: 'Server Sicegemex working'
-    });
+
+//Register route
+app.use('/register/user', registerUserRoutes);
+
+
+//Error route
+
+app.use((res) => {
+  return res.status(404).json({
+    status: 'error',
+    message: 'Ruta no encontrada'
+  });
 });
+
+//Error global not round
+
+app.use((err, res) => {
+  console.error('Error no controlado:', err);
+  res.status(500).json({
+    status: 'error',
+    message: 'Error interno del servidor'
+  });
+});
+
+
 
 app.get('/api/test-db', async (req, res) => {
   try {
