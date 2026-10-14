@@ -2,9 +2,9 @@ import { adminSchema } from "../schemas/admin.schema.js";
 import { operatorSchema } from "../schemas/operator.schema.js";
 import { ambulanceSchema } from "../schemas/ambulance.schema.js";
 
-import { userExists } from "../services/users.service.js";
+import service from "../services/users.service.js";
 
-export async function validateRegistration(req, res, next) {
+async function validateRegistration(req, res, next) {
   let schema;
 
   // Identify role
@@ -38,7 +38,7 @@ export async function validateRegistration(req, res, next) {
   }
 
   // Ensure the username is unique for the selected role before continuing.
-  if (await userExists(req.body.username, req.params.role)) {
+  if (await service.userExists(req.body.username, req.params.role)) {
     return res.status(409).json({
       message: "El usuario ya existe",
     });
@@ -47,3 +47,7 @@ export async function validateRegistration(req, res, next) {
   req.body = result.data;
   next();
 };
+
+const middleware = { validateRegistration };
+
+export default middleware;

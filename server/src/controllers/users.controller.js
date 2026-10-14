@@ -1,22 +1,18 @@
-import {
-  registerUserAdmin,
-  registerUserAmbulance,
-  registerUserOperator,
-} from "../services/users.service.js";
+import service from "../services/users.service.js";
 
 async function register(req, res) {
   const data = req.body;
   let result;
 
   switch (data.role) {
-    case "admin":
-      result = await registerUserAdmin(data);
+    case 1:
+      result = await service.registerAmbulance(data);
       break;
-    case "operator":
-      result = await registerUserOperator(data);
+    case 2:
+      result = await service.registerOperator(data);
       break;
-    case "ambulance":
-      result = await registerUserAmbulance(data);
+    case 3:
+      result = await service.registerAdmin(data);
       break;
     default:
       return res.status(400).json({ error: "Rol no válido" });
@@ -29,4 +25,6 @@ async function register(req, res) {
   return res.status(201).json({ message: "Usuario registrado exitosamente" });
 }
 
-export { register };
+const controller = { register };
+
+export default controller;

@@ -11,16 +11,6 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS operators (
-    operator_id INT PRIMARY KEY,
-    full_name VARCHAR(120) NOT NULL,
-    crum_station VARCHAR(100) NOT NULL,
-    CONSTRAINT fk_operator_user
-        FOREIGN KEY (operator_id)
-        REFERENCES users(user_id)
-        ON DELETE CASCADE
-);
-
 CREATE TABLE IF NOT EXISTS sessions (
     session_id SERIAL PRIMARY KEY,
     user_id INT NOT NULL,
@@ -29,6 +19,16 @@ CREATE TABLE IF NOT EXISTS sessions (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_session_user
         FOREIGN KEY (user_id)
+        REFERENCES users(user_id)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS operators (
+    operator_id INT PRIMARY KEY,
+    full_name VARCHAR(120) NOT NULL,
+    headquarters VARCHAR(100) NOT NULL,
+    CONSTRAINT fk_operator_user
+        FOREIGN KEY (operator_id)
         REFERENCES users(user_id)
         ON DELETE CASCADE
 );
