@@ -1,4 +1,4 @@
-import {query} from '../config/dataBase.js';
+import {query} from '../config/database.js';
 import jwt from 'jsonwebtoken';
 
 async function authenticateUser({user, userPassword}){
