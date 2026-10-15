@@ -6,7 +6,7 @@
 CREATE TABLE IF NOT EXISTS users (
     user_id SERIAL PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
-    password_hash VARCHAR(255) NOT NULL,
+    password VARCHAR(255) NOT NULL,
     role SMALLINT NOT NULL CHECK (role IN (1, 2, 3)),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS operators (
 
 CREATE TABLE IF NOT EXISTS ambulances (
     ambulance_id INT PRIMARY KEY,
-    license_plate VARCHAR(10) NOT NULL UNIQUE,
+    license_plate VARCHAR(10) NOT NULL,
     ambulance_type SMALLINT NOT NULL CHECK (ambulance_type IN (1, 2, 3, 4)),
     operating_base VARCHAR(100) NOT NULL,
     CONSTRAINT fk_ambulance_user
@@ -131,19 +131,6 @@ CREATE TABLE IF NOT EXISTS hospital_transfers (
             AND transfer_completed_at >= transfer_started_at
         )
     )
-);
-
-CREATE TABLE IF NOT EXISTS ratings (
-    rating_id SERIAL PRIMARY KEY,
-    assignment_id INT NOT NULL,
-    numeric_rating SMALLINT NOT NULL
-        CHECK (numeric_rating BETWEEN 1 AND 5),
-    comment TEXT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_rating_assignment
-        FOREIGN KEY (assignment_id)
-        REFERENCES assignments(assignment_id)
-        ON DELETE CASCADE
 );
 
 -- =============================================================================

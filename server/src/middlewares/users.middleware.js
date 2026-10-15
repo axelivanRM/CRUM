@@ -37,16 +37,25 @@ async function validateRegistration(req, res, next) {
     });
   }
 
-  // Ensure the username is unique for the selected role before continuing.
-  if (await service.userExists(req.body.username, req.params.role)) {
+  // Ensure the username is unique in the users table before continuing.
+  if (await service.userExists(req.body.username)) {
     return res.status(409).json({
       message: "El usuario ya existe",
     });
   }
 
+  // If the role is admin, validate the access password before proceeding.
+  if (req.params.role === "admin") {
+    if (req.body.accessPassword !== process.env.ADMIN_ACCESS_PASSWORD) {
+      return res.status(403).json({
+        message: "Contraseña de acceso incorrecta",
+      });
+    }
+  }
+
   req.body = result.data;
   next();
-};
+}
 
 const middleware = { validateRegistration };
 

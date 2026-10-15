@@ -1,7 +1,7 @@
 import * as z from "zod";
 
 export const userSchema = z.object({
-  user: z.email({
+  username: z.email({
     error: "El formato del correo electrónico no es válido",
   }),
 
@@ -25,10 +25,4 @@ export const userSchema = z.object({
     .regex(/[^A-Za-z0-9]/, {
       error: "La contraseña debe contener al menos un símbolo",
     }),
-
-  role: z
-    .number({ error: "El rol debe ser un número del 1 al 3" })
-    .int({ error: "El rol debe ser un número entero" })
-    .min(1, { error: "El rol debe ser 1, 2 o 3" })
-    .max(3, { error: "El rol debe ser 1, 2 o 3" }),
 });

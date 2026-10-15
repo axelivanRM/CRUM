@@ -4,22 +4,22 @@ async function register(req, res) {
   const data = req.body;
   let result;
 
-  switch (data.role) {
-    case 1:
+  switch (req.params.role) {
+    case "ambulance":
       result = await service.registerAmbulance(data);
       break;
-    case 2:
+    case "operator":
       result = await service.registerOperator(data);
       break;
-    case 3:
+    case "admin":
       result = await service.registerAdmin(data);
       break;
     default:
       return res.status(400).json({ error: "Rol no válido" });
   }
 
-  if (result.error) {
-    return res.status(400).json({ error: result.error });
+  if (!result) {
+    return res.status(400).json({ error: "Error al registrar el usuario" });
   }
 
   return res.status(201).json({ message: "Usuario registrado exitosamente" });

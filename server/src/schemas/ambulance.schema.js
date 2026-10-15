@@ -8,7 +8,7 @@ export const ambulanceSchema = userSchema.extend({
     .min(1, { error: "Las placas son obligatorias" })
     .max(10, { error: "Las placas no pueden superar los 10 caracteres" }),
 
-  type: z
+  ambulanceType: z
     .number({ error: "El tipo de ambulancia debe ser un número del 1 al 4" })
     .int({ error: "El tipo de ambulancia debe ser un número entero" })
     .min(1, { error: "El tipo de ambulancia debe ser del 1 al 4" })

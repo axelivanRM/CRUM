@@ -2,7 +2,7 @@ import * as z from "zod";
 import { userSchema } from "./user.schema.js";
 
 export const operatorSchema = userSchema.extend({
-  name: z
+  fullName: z
     .string({ error: "El nombre es obligatorio" })
     .trim()
     .min(1, { error: "El nombre es obligatorio" })
