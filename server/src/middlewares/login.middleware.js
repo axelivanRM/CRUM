@@ -1,6 +1,6 @@
 import {userSchema} from '../schemas/user.schema.js';
 
-export async function validateCredentials(req, res, next){
+async function validateCredentials(req, res, next){
     // Verify schema
   const result = userSchema.safeParse(req.body);
 
@@ -16,8 +16,15 @@ export async function validateCredentials(req, res, next){
     });
   }
 
-  req.body = result.data;
+  req.body = {
+    user: result.data.user,
+    password: result.data.password
+  };
 
   next();
 
 }
+
+const middleware = {validateCredentials};
+
+export default middleware;

@@ -1,4 +1,5 @@
 import { query } from "../config/database.js";
+import {applyHash} from '../utils/hash.js';
 
 async function userExists(username, role) {
   const result = await query("SELECT user_exists($1, $2)", [username, role]);
@@ -6,9 +7,12 @@ async function userExists(username, role) {
 }
 
 async function registerOperator({ user, password, name, headquarters }) {
+
+  const hashedPassword = await applyHash(password);
+
   const result = await query("SELECT register_operator($1, $2, $3, $4)", [
     user,
-    password,
+    hashedPassword,
     name,
     headquarters,
   ]);
@@ -22,9 +26,12 @@ async function registerAmbulance({
   type,
   operationalBase,
 }) {
+
+  const hashedPassword = await applyHash(password); 
+
   const result = await query("SELECT register_ambulance($1, $2, $3, $4, $5)", [
     user,
-    password,
+    hashedPassword,
     licensePlates,
     type,
     operationalBase,
@@ -33,10 +40,14 @@ async function registerAmbulance({
 }
 
 async function registerAdmin({ user, password, accessPassword }) {
+
   if (accessPassword !== process.env.ADMIN_ACCESS_PASSWORD) {
     return { error: "Contraseña de acceso incorrecta" };
   }
-  const result = await query("SELECT register_admin($1, $2)", [user, password]);
+
+  const hashedPassword = await applyHash(password);
+
+  const result = await query("SELECT register_admin($1, $2)", [user, hashedPassword]);
   return result.rows[0].new_user_id;
 }
 

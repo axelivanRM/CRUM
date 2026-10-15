@@ -1,10 +1,10 @@
-import {auth} from  '../services/auth.service.js'
+import {login} from  '../services/auth.service.js'
 
-export async function login(req, res){
+export async function loginController(req, res){
 
-  const {user, password, role} = req.body;
+  const {user, password} = req.body;
 
-  const result = await login({user, password, role});
+  const result = await login({user, password});
 
   if(result.error){
     res.status(400).json({error: result.error});
@@ -13,3 +13,6 @@ export async function login(req, res){
   return res.status(201).json({message: "Usuario autenticado exitosamente"});
 
 }
+
+const controller = {loginController};
+export default controller;
