@@ -1,4 +1,5 @@
 import { query } from "../config/database.js";
+import {applyHash} from '../utils/hash.js';
 
 async function userExists(username) {
   const result = await query(
@@ -16,6 +17,9 @@ async function registerAmbulance({
   ambulanceType,
   operationalBase,
 }) {
+
+  const hashedPassword = await applyHash(password); 
+
   let result;
 
   // Create the user account and retrieve its generated ID.
@@ -44,7 +48,7 @@ async function registerAmbulance({
 
 async function registerOperator({
   username,
-  password,
+  hashedPassword,
   fullName,
   headquarters,
 }) {
@@ -75,12 +79,16 @@ async function registerOperator({
 }
 
 async function registerAdmin({ username, password, accessPassword }) {
+
   // Create the user account and retrieve its generated ID.
+
+  const hashedPassword = await applyHash(password);
+
   const result = await query(
     `INSERT INTO users (username, password, role)
     VALUES ($1, $2, 3)
     RETURNING user_id`,
-    [username, password],
+    [username, hashedPassword],
   );
 
   return result.rows[0]?.user_id ?? null;
