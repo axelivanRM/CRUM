@@ -10,6 +10,7 @@ import errorHandler from "./middlewares/error-handler.middleware.js";
 
 import registerUserRoutes from "./routes/registerUserRoutes.js";
 import userRoutes from "./routes/users.route.js";
+import emergenciesRoutes from "./routes/emergencies.route.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -22,6 +23,7 @@ app.use(express.json());
 // Rutas de la API
 app.use("/register/user", registerUserRoutes);
 app.use("/users", userRoutes);
+app.use("/emergencies", emergenciesRoutes);
 
 // Manejo de errores
 app.use(notFound);
