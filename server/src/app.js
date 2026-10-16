@@ -8,7 +8,6 @@ import { query } from "./config/database.js";
 import notFound from "./middlewares/not-found.middleware.js";
 import errorHandler from "./middlewares/error-handler.middleware.js";
 
-import registerUserRoutes from "./routes/registerUserRoutes.js";
 import userRoutes from "./routes/users.route.js";
 import authRoutes from "./routes/auth.route.js";
 import emergenciesRoutes from "./routes/emergencies.route.js";
@@ -22,7 +21,6 @@ app.use(cors());
 app.use(express.json());
 
 // Rutas de la API
-app.use("/register/user", registerUserRoutes);
 app.use("/users", userRoutes);
 app.use("/auth", authRoutes);
 app.use("/emergencies", emergenciesRoutes);

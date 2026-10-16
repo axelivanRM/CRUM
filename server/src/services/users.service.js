@@ -1,5 +1,5 @@
 import { query } from "../config/database.js";
-import {applyHash} from '../utils/hash.js';
+import { applyHash } from "../utils/hash.js";
 
 async function userExists(username) {
   const result = await query(
@@ -17,17 +17,15 @@ async function registerAmbulance({
   ambulanceType,
   operationalBase,
 }) {
-
-  const hashedPassword = await applyHash(password); 
-
   let result;
+  const hashedPassword = await applyHash(password);
 
   // Create the user account and retrieve its generated ID.
   result = await query(
     `INSERT INTO users (username, password, role)
     VALUES ($1, $2, 1)
     RETURNING user_id`,
-    [username, password],
+    [username, hashedPassword],
   );
 
   // Stop if the user account was not created.
@@ -48,18 +46,19 @@ async function registerAmbulance({
 
 async function registerOperator({
   username,
-  hashedPassword,
+  password,
   fullName,
   headquarters,
 }) {
   let result;
+  const hashedPassword = await applyHash(password);
 
   // Create the user account and retrieve its generated ID.
   result = await query(
     `INSERT INTO users (username, password, role)
     VALUES ($1, $2, 2)
     RETURNING user_id`,
-    [username, password],
+    [username, hashedPassword],
   );
 
   // Stop if the user account was not created.
@@ -78,12 +77,10 @@ async function registerOperator({
   return result.rows[0]?.operator_id ?? null;
 }
 
-async function registerAdmin({ username, password, accessPassword }) {
-
-  // Create the user account and retrieve its generated ID.
-
+async function registerAdmin({ username, password }) {
   const hashedPassword = await applyHash(password);
 
+  // Create the user account and retrieve its generated ID.
   const result = await query(
     `INSERT INTO users (username, password, role)
     VALUES ($1, $2, 3)

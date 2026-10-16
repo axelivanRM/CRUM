@@ -4,12 +4,6 @@ import { ambulanceSchema } from "../schemas/ambulance.schema.js";
 
 import service from "../services/users.service.js";
 
-const ROLE_MAP = {
-  ambulance: 1,
-  operator: 2,
-  admin: 3,
-};
-
 async function validateRegistration(req, res, next) {
   let schema;
 
@@ -42,8 +36,6 @@ async function validateRegistration(req, res, next) {
       })),
     });
   }
-
-  const roleId = ROLE_MAP[req.params.role];
 
   // Ensure the username is unique in the users table before continuing.
   if (await service.userExists(req.body.username)) {

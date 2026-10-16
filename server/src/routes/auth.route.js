@@ -1,6 +1,6 @@
-import {Router} from 'express';
-import middleware from '../middlewares/login.middleware.js';
-import controller from '../controllers/auth.controller.js';
+import { Router } from "express";
+import middleware from "../middlewares/login.middleware.js";
+import controller from "../controllers/auth.controller.js";
 
 const router = Router();
 
