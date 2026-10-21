@@ -1,4 +1,4 @@
-import { query } from "../config/database.js";
+import { query } from "../config/database.config.js";
 import crypto from "crypto";
 import { verifyHash } from "../utils/hash.js";
 

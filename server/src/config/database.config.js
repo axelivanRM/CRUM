@@ -10,10 +10,6 @@ const pool = new Pool({
   database: process.env.DB_NAME,
 });
 
-pool.on("connect", () => {
-  console.log("Database connected successfully");
-});
-
 pool.on("error", (err) => {
   console.error("Database error:", err);
 });

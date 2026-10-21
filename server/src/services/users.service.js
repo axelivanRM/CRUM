@@ -1,4 +1,4 @@
-import { query } from "../config/database.js";
+import { query } from "../config/database.config.js";
 import { applyHash } from "../utils/hash.js";
 
 async function userExists(username) {

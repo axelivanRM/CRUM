@@ -1,4 +1,4 @@
-import { query } from "../config/database.js";
+import { query } from "../config/database.config.js";
 
 // Check whether the supplied ID belongs to a registered operator.
 async function operatorExists(operatorId) {
@@ -8,6 +8,18 @@ async function operatorExists(operatorId) {
   );
 
   return result.rows[0].exists;
+}
+
+// Retrieve every emergency that has not been closed, newest first.
+async function getActiveEmergencies() {
+  const result = await query(
+    `SELECT *
+       FROM emergencies
+       WHERE closed_at IS NULL
+       ORDER BY started_at DESC`,
+  );
+
+  return result.rows;
 }
 
 // Insert an emergency using parameterized SQL and return its generated ID.
@@ -39,6 +51,7 @@ async function createEmergency({
 
 const service = {
   operatorExists,
+  getActiveEmergencies,
   createEmergency,
 };
 

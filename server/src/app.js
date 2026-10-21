@@ -3,7 +3,8 @@ import express from "express";
 import helmet from "helmet";
 import cors from "cors";
 
-import { query } from "./config/database.js";
+import { query } from "./config/database.config.js";
+import params, { initParams } from "./config/params.config.js";
 
 import notFound from "./middlewares/not-found.middleware.js";
 import errorHandler from "./middlewares/error-handler.middleware.js";
@@ -37,6 +38,10 @@ async function startServer() {
     });
 
     await query("SELECT 1");
+    console.log("Database connection successful");
+
+    await initParams();
+    console.log("Initialized parameters:", params);
   } catch (error) {
     console.error(error.message);
   }
