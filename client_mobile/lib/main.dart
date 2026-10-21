@@ -18,7 +18,7 @@ class MainApp extends StatelessWidget {
       //home: RequestExample(), // Ejemplo de solicitud HTTP,
       home: LoginScreen(
         onLogin: (email, password) async {
-          // TODO: conectar con el servicio de autenticación.
+          // conectar con el servicio de autenticación.
         },
       ),
     );

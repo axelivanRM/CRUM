@@ -19,7 +19,7 @@ async function register(req, res) {
   }
 
   if (!result) {
-    return res.status(400).json({ error: "Error al registrar el usuario" });
+    return res.status(500).json({ error: "Error al registrar el usuario" });
   }
 
   return res.status(201).json({ message: "Usuario registrado exitosamente" });

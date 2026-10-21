@@ -1,14 +1,13 @@
 import { Router } from "express";
 import middleware from "../middlewares/emergencies.middleware.js";
+import controller from "../controllers/emergencies.controller.js";
 
 const router = Router();
 
 // Middleware
 router.use("/new", middleware.validateEmergency);
 
-// Routes
-router.post("/new", (req, res) => {
-  res.status(200).json({ message: "Formulario de emergencia" });
-});
+// Controller
+router.post("/new", controller.newEmergency);
 
 export default router;
