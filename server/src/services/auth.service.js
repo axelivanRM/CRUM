@@ -53,6 +53,32 @@ async function login({ user, password }) {
   };
 }
 
-const service = { login };
+async function validateToken(token) {
+  //check if the token is provided
+  if (!token) {
+    throw new Error("Token no proporcionado");
+  }
+  
+  //hash the token
+  const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+  //recover the token of the database
+  const textQuerySesiones = `SELECT id_user, expires_at FROM sessions 
+                             WHERE token = $1 AND expires_at > NOW()`;
+  const paramsQuerySesiones = [hashedToken];
+  const resultQuerySesiones = await query(textQuerySesiones, paramsQuerySesiones);
+
+  //check if the token is valid 
+  if (resultQuerySesiones.rows.length === 0) {
+    throw new Error("Token inválido o expirado");
+  }
+  return {
+    idUser: resultQuerySesiones.rows[0].id_user,
+    expiresAt: resultQuerySesiones.rows[0].expires_at,
+  }
+}
+
+
+const service = { login, validateToken };
 
 export default service;

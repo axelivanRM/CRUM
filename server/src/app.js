@@ -1,5 +1,7 @@
 import "dotenv/config";
 import express from "express";
+import http from 'http';
+import { Server } from 'socket.io';
 import helmet from "helmet";
 import cors from "cors";
 
@@ -7,6 +9,8 @@ import { query } from "./config/database.js";
 
 import notFound from "./middlewares/not-found.middleware.js";
 import errorHandler from "./middlewares/error-handler.middleware.js";
+import authenticateSocket from "./sockets/authWebSocket.middleware.js";
+import handler from "./sockets/socket.handler.js";
 
 import userRoutes from "./routes/users.route.js";
 import authRoutes from "./routes/auth.route.js";
@@ -29,12 +33,29 @@ app.use("/emergencies", emergenciesRoutes);
 app.use(notFound);
 app.use(errorHandler);
 
+
+// An HTTP server is created so that Express can handle requests, 
+const httpServer = http.createServer(app);
+
+// An socket server is created to get hook into the HTTP server and handle WebSocket connections
+//so that socket can transform the HTTP request into a WebSocket request.
+const io = new Server (httpServer, {cors:{
+    origin: "*",
+    methods: ["GET", "POST"]
+}});
+
+
+middleware.authenticateSocket(io);
+handler.getDataLocation(io);
+
+
+
 // Iniciar el servidor y verificar la conexión a la base de datos
 async function startServer() {
   try {
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-    });
+    httpServer.listen(PORT, () => {
+      console.log(`Servidor escuchando en http://localhost:${PORT}`);
+    })
 
     await query("SELECT 1");
   } catch (error) {
