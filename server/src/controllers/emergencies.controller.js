@@ -2,6 +2,14 @@ import service from "../services/emergencies.service.js";
 
 // Create a new emergency
 async function newEmergency(req, res) {
+  const duplicates = await service.findDuplicateEmergency(req.body);
+
+  if (duplicates && !req.body.ignoreDuplicates) {
+    return res
+      .status(409)
+      .json({ warning: "La emergencia podría estar duplicada", duplicates });
+  }
+
   const result = await service.createEmergency(req.body);
 
   if (!result) {

@@ -1,4 +1,6 @@
 import { query } from "../config/database.config.js";
+import { calculateDistance } from "./geo.service.js";
+import params from "../config/params.config.js";
 
 // Check whether the supplied ID belongs to a registered operator.
 async function operatorExists(operatorId) {
@@ -22,11 +24,31 @@ async function getActiveEmergencies() {
   return result.rows;
 }
 
+async function findDuplicateEmergency(emergency) {
+  const { latitude, longitude } = emergency;
+  const activeEmergencies = await getActiveEmergencies();
+  let duplicatedEmergencies = [];
+
+  for (const activeEmergency of activeEmergencies) {
+    const distance = calculateDistance(
+      latitude,
+      longitude,
+      activeEmergency.latitude,
+      activeEmergency.longitude,
+    );
+    if (distance <= params.emergencyDuplicateRadius) {
+      duplicatedEmergencies.push(activeEmergency);
+    }
+  }
+
+  return duplicatedEmergencies.length > 0 ? duplicatedEmergencies : null;
+}
+
 // Insert an emergency using parameterized SQL and return its generated ID.
 async function createEmergency({
-  operator_id,
-  contact_phone,
-  emergency_type,
+  operatorId,
+  contactPhone,
+  emergencyType,
   description,
   latitude,
   longitude,
@@ -37,9 +59,9 @@ async function createEmergency({
        VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING emergency_id`,
     [
-      operator_id,
-      contact_phone,
-      emergency_type,
+      operatorId,
+      contactPhone,
+      emergencyType,
       description ?? null,
       latitude,
       longitude,
@@ -53,6 +75,7 @@ const service = {
   operatorExists,
   getActiveEmergencies,
   createEmergency,
+  findDuplicateEmergency,
 };
 
 export default service;

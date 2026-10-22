@@ -12,12 +12,12 @@ async function validateEmergency(req, res, next) {
 
   // Reject emergency requests that reference a non-existent operator.
   const isValidOperator = await service.operatorExists(
-    validation.data.operator_id,
+    validation.data.operatorId,
   );
 
   if (!isValidOperator) {
     return res.status(400).json({
-      error: "operator_id does not belong to an existing operator",
+      error: "operatorId does not belong to an existing operator",
     });
   }
 
