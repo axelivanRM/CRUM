@@ -10,7 +10,7 @@ import { query } from "./config/database.js";
 import notFound from "./middlewares/not-found.middleware.js";
 import errorHandler from "./middlewares/error-handler.middleware.js";
 import authenticateSocket from "./sockets/authWebSocket.middleware.js";
-import handler from "./sockets/socket.handler.js";
+import onConnection from "./sockets/socket.connection.handler.js";
 
 import userRoutes from "./routes/users.route.js";
 import authRoutes from "./routes/auth.route.js";
@@ -28,7 +28,12 @@ app.use(express.json());
 app.use("/users", userRoutes);
 app.use("/auth", authRoutes);
 app.use("/emergencies", emergenciesRoutes);
-
+// testing route for testing the server connection with next
+app.get('/saludo', (req, res) => {
+    const x = 'hola como estas';
+    console.log('📤 Enviando saludo al cliente:', x);
+    res.json({ mensaje: x });
+});
 // Manejo de errores
 app.use(notFound);
 app.use(errorHandler);
@@ -45,8 +50,8 @@ const io = new Server (httpServer, {cors:{
 }});
 
 
-middleware.authenticateSocket(io);
-handler.getDataLocation(io);
+authenticateSocket(io);
+onConnection(io);
 
 
 

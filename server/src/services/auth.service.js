@@ -3,9 +3,12 @@ import crypto from "crypto";
 import { verifyHash } from "../utils/hash.js";
 
 async function login({ user, password }) {
+
+    console.log(user, password);
   //validate user and password in the database
-  const textQueryUsers = `SELECT user_id, username, password_hash FROM users
+  const textQueryUsers = `SELECT user_id, username, password FROM users
                             WHERE username = $1`;
+
   const paramsQueryUsers = [user];
   const resultQueryUsers = await query(textQueryUsers, paramsQueryUsers);
 
@@ -18,7 +21,7 @@ async function login({ user, password }) {
 
   //verify the password using the verify function from hash.js
   const isPasswordValid = await verifyHash(
-    resultQueryUsers.rows[0].password_hash,
+    resultQueryUsers.rows[0].password,
     password,
   );
 
@@ -30,8 +33,9 @@ async function login({ user, password }) {
 
   //if the user is found, generate a token and store it in the sessions table
   const token = crypto.randomBytes(32).toString("hex");
+  console.log("Token generado:", token);
   const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
-  const expiresAt = new Date(Date.now() + 1 * 10 * 60 * 1000); // 10 minutes in milliseconds to prove it
+  const expiresAt = new Date(Date.now() + 2 * 60 * 60 * 1000); // 2 hours in milliseconds to prove it
 
   const textQuerySesiones = `INSERT INTO sessions (user_id, token, expires_at)
                                    VALUES ($1, $2,$3) RETURNING session_id, token as hashedToken, expires_at`;
@@ -54,6 +58,8 @@ async function login({ user, password }) {
 }
 
 async function validateToken(token) {
+
+  console.log("Validando token:", token);
   //check if the token is provided
   if (!token) {
     throw new Error("Token no proporcionado");
@@ -63,7 +69,7 @@ async function validateToken(token) {
   const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
 
   //recover the token of the database
-  const textQuerySesiones = `SELECT id_user, expires_at FROM sessions 
+  const textQuerySesiones = `SELECT user_id, expires_at FROM sessions 
                              WHERE token = $1 AND expires_at > NOW()`;
   const paramsQuerySesiones = [hashedToken];
   const resultQuerySesiones = await query(textQuerySesiones, paramsQuerySesiones);
@@ -73,7 +79,7 @@ async function validateToken(token) {
     throw new Error("Token inválido o expirado");
   }
   return {
-    idUser: resultQuerySesiones.rows[0].id_user,
+    idUser: resultQuerySesiones.rows[0].user_id,
     expiresAt: resultQuerySesiones.rows[0].expires_at,
   }
 }
