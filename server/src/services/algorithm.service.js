@@ -60,6 +60,7 @@ export async function calculateETA(ambulances, emergencie) {
       },
     ],
     travelMode: "DRIVE",
+    routingPreference: "TRAFFIC_UNAWARE", // CAMBIAR A TRAFFIC_AWARE EN PRODUCCIÓN
   };
 
   const response = await fetch(
@@ -82,7 +83,7 @@ export async function calculateETA(ambulances, emergencie) {
  * Genera ambulancias de prueba distribuidas aleatoriamente en CDMX.
  * La resolución H3 9 representa celdas urbanas de unos cientos de metros.
  */
-export function generateAmbulances(count = 300) {
+export function generateAmbulances(count = 10) {
   return Array.from({ length: count }, (_, index) => {
     const latitude =
       CDMX_BOUNDS.minLat +
@@ -94,7 +95,7 @@ export function generateAmbulances(count = 300) {
     return {
       latitude,
       longitude,
-      h3_index: latLngToCell(latitude, longitude, 0),
+      h3_index: latLngToCell(latitude, longitude, 5),
       ambulanceType: Math.floor(Math.random() * 4) + 1,
       id_socket: `ambulance-${index + 1}`,
     };
@@ -119,7 +120,12 @@ function assignCandidates(requestedAmbulances, availableAmbulances) {
         ambulance,
       );
 
-      requestedAmbulances.toBeAssigned--;
+      if (
+        requestedAmbulances.requested[currentAmbulanceType].toBeAssigned > 0
+      ) {
+        requestedAmbulances.requested[currentAmbulanceType].toBeAssigned--;
+        requestedAmbulances.toBeAssigned--;
+      }
     } else {
       // Otherwise, find the requested type with the smallest difference;
       // if tied, prefer the lower type.
@@ -146,30 +152,22 @@ function assignCandidates(requestedAmbulances, availableAmbulances) {
 }
 
 export async function algorithm() {
-  const timeMax = 30 * 60 * 1000; // 30 minutes in milliseconds
+  const timeMax = 30 * 60; // 30 minutes in milliseconds
   const startTime = Date.now();
   const ambulances = generateAmbulances();
   const emergencie = {
     latitude: 19.4326,
     longitude: -99.1332,
-    h3_index: latLngToCell(19.4326, -99.1332, 0),
+    h3_index: latLngToCell(19.4326, -99.1332, 5),
   };
   const requestedAmbulances = {
     requested: {
-      1: {
-        quantity: 2,
-      },
-      2: {
-        quantity: 2,
-      },
       3: {
-        quantity: 2,
-      },
-      4: {
-        quantity: 2,
+        quantity: 1,
+        toBeAssigned: 1,
       },
     },
-    toBeAssigned: 8,
+    toBeAssigned: 1,
   };
   const cells = {};
 
@@ -184,16 +182,21 @@ export async function algorithm() {
   }
 
   let ambulancesStack = [];
+  let googleMapsAPIRequests = 0;
+
+  const distances = Object.keys(cells);
+  const lastDistance = distances[distances.length - 1];
 
   // For each distance in cells
   for (const distance in cells) {
     const currentAmbulances = cells[distance];
-    //let ETAs = [];
+    const isLastIteration = distance === lastDistance;
 
     // If the sum of ambulances in the cell and ambulancesStack is below the amount of ambulances to be assigned, then push in the ambulancesStack and continue
     if (
       currentAmbulances.length + ambulancesStack.length <
-      requestedAmbulances.toBeAssigned
+        requestedAmbulances.toBeAssigned &&
+      !isLastIteration
     ) {
       ambulancesStack.push(...currentAmbulances);
       continue;
@@ -206,53 +209,55 @@ export async function algorithm() {
     currentAmbulances.sort((a, b) => a.linearDistance - b.linearDistance);
 
     // Send request of n-m ambulances to Google Route API
+    /*
     for (
       let i = 0;
       i <
       Math.ceil(currentAmbulances.length / requestedAmbulances.toBeAssigned);
       i++
-    ) {
-      let currentSliceStart = i * requestedAmbulances.toBeAssigned;
-      let currentSliceEnd = (i + 1) * requestedAmbulances.toBeAssigned;
-      let currentAmbulancesSlice = currentAmbulances.slice(
-        currentSliceStart,
-        currentSliceEnd,
+    ) */
+    while (currentAmbulances.length) {
+      //let currentSliceStart = i * requestedAmbulances.toBeAssigned;
+      //let currentSliceEnd = (i + 1) * requestedAmbulances.toBeAssigned;
+      let currentAmbulancesSlice = currentAmbulances.splice(
+        0,
+        requestedAmbulances.toBeAssigned,
       );
 
       let ETAs = await calculateETA(currentAmbulancesSlice, emergencie);
+      googleMapsAPIRequests += currentAmbulancesSlice.length;
 
-      currentAmbulancesSlice.forEach((ambulance, index) => {
-        ambulance.ETA = parseInt(ETAs[index].duration, 10);
-      });
+      let timeMaxExceeded = false;
 
-      assignCandidates(requestedAmbulances, currentAmbulancesSlice);
-      console.dir(requestedAmbulances.requested, { depth: null });
+      for (let index = 0; index < currentAmbulancesSlice.length; index++) {
+        currentAmbulancesSlice[index].ETA = parseInt(ETAs[index].duration, 10);
+      }
 
-      if (requestedAmbulances.toBeAssigned <= 0) {
-        break;
-      } else {
-        let hola2 = false;
+      currentAmbulancesSlice.sort((a, b) => a.ETA - b.ETA);
 
-        for (i = 0; i < currentAmbulancesSlice.length; i++) {
-          let hola = currentAmbulancesSlice[i].ETA;
-          if (hola > timeMax) {
-            hola2 = true;
-            currentAmbulancesSlice[i].pop();
-          }
-        }
-
-        if (hola2) {
+      for (let index = 0; index < currentAmbulancesSlice.length; index++) {
+        if (currentAmbulancesSlice[index].ETA > timeMax) {
+          currentAmbulancesSlice.splice(index);
+          timeMaxExceeded = true;
           break;
         }
       }
-      return requestedAmbulances;
+
+      assignCandidates(requestedAmbulances, currentAmbulancesSlice);
+
+      if (requestedAmbulances.toBeAssigned == 0 || timeMaxExceeded) {
+        break;
+      }
     }
   }
 
+  console.dir(requestedAmbulances, { depth: null });
+
   const endTime = Date.now();
   console.log(`Algorithm executed in ${endTime - startTime} ms`);
+  console.log("Google Maps API Requests: ", googleMapsAPIRequests);
 
-  return null;
+  return requestedAmbulances;
 }
 
 algorithm();
