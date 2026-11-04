@@ -10,4 +10,7 @@ router.use("/login", middleware.validateCredentials);
 //controller
 router.post("/login", controller.loginController);
 
+// middleware
+
+
 export default router;

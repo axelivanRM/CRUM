@@ -17,7 +17,7 @@ async function validateCredentials(req, res, next) {
   }
 
   req.body = {
-    user: result.data.user,
+    user: result.data.username,
     password: result.data.password,
   };
 
