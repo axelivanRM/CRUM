@@ -1,139 +1,39 @@
-import { gridDistance, latLngToCell } from "h3-js";
+import params from "../config/params.config.js";
+import h3 from "h3-js";
+import geoFunctions from "../utils/geo-functions.js";
+import { generateAmbulances } from "../utils/test.js";
 
-// Coordenadas aproximadas del área urbana de Ciudad de México.
-const CDMX_BOUNDS = {
-  minLat: 19.2,
-  maxLat: 19.6,
-  minLong: -99.36,
-  maxLong: -98.94,
-};
-
-/** Calcula la distancia geodésica entre dos puntos (en metros) con Haversine. */
-export function calculateLinearDistance(pointA, pointB) {
-  const earthRadiusMeters = 6_371_000;
-  const toRadians = (degrees) => (degrees * Math.PI) / 180;
-
-  const latitudeDifference = toRadians(pointB.latitude - pointA.latitude);
-  const longitudeDifference = toRadians(pointB.longitude - pointA.longitude);
-  const latitudeA = toRadians(pointA.latitude);
-  const latitudeB = toRadians(pointB.latitude);
-
-  const haversine =
-    Math.sin(latitudeDifference / 2) ** 2 +
-    Math.cos(latitudeA) *
-      Math.cos(latitudeB) *
-      Math.sin(longitudeDifference / 2) ** 2;
-
-  return (
-    2 *
-    earthRadiusMeters *
-    Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine))
-  );
-}
-
-/**
- * Construye el cuerpo para Routes API computeRouteMatrix.
- * Cada ambulancia es un origen y la emergencia es el destino común.
- */
-export async function calculateETA(ambulances, emergencie) {
-  const request = {
-    origins: ambulances.map((ambulance) => ({
-      waypoint: {
-        location: {
-          latLng: {
-            latitude: ambulance.latitude,
-            longitude: ambulance.longitude,
-          },
-        },
-      },
-    })),
-    destinations: [
-      {
-        waypoint: {
-          location: {
-            latLng: {
-              latitude: emergencie.latitude,
-              longitude: emergencie.longitude,
-            },
-          },
-        },
-      },
-    ],
-    travelMode: "DRIVE",
-    routingPreference: "TRAFFIC_UNAWARE", // CAMBIAR A TRAFFIC_AWARE EN PRODUCCIÓN
-  };
-
-  const response = await fetch(
-    "https://routes.googleapis.com/distanceMatrix/v2:computeRouteMatrix",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Goog-Api-Key": "AIzaSyBksqj-6lqhuwEca-WStJZrc5UumeDni8k",
-        "X-Goog-FieldMask": "originIndex,duration",
-      },
-      body: JSON.stringify(request),
-    },
+function matchAmbulances(requestedAmbulances, availableAmbulances) {
+  // Store the requested ambulance types as an array of integers for easier comparison.
+  const requestedAmbulancesTypes = Object.keys(requestedAmbulances.types).map(
+    (ambulanceType) => parseInt(ambulanceType, 10),
   );
 
-  return await response.json();
-}
-
-/**
- * Genera ambulancias de prueba distribuidas aleatoriamente en CDMX.
- * La resolución H3 9 representa celdas urbanas de unos cientos de metros.
- */
-export function generateAmbulances(count = 10) {
-  return Array.from({ length: count }, (_, index) => {
-    const latitude =
-      CDMX_BOUNDS.minLat +
-      Math.random() * (CDMX_BOUNDS.maxLat - CDMX_BOUNDS.minLat);
-    const longitude =
-      CDMX_BOUNDS.minLong +
-      Math.random() * (CDMX_BOUNDS.maxLong - CDMX_BOUNDS.minLong);
-
-    return {
-      latitude,
-      longitude,
-      h3_index: latLngToCell(latitude, longitude, 5),
-      ambulanceType: Math.floor(Math.random() * 4) + 1,
-      id_socket: `ambulance-${index + 1}`,
-    };
-  });
-}
-
-function assignCandidates(requestedAmbulances, availableAmbulances) {
-  // Requested types are the keys of `requested`; convert them to numbers
-  // so they can be compared with `ambulanceType`.
-  const requestedAmbulancesTypes = Object.keys(
-    requestedAmbulances.requested,
-  ).map((ambulanceType) => parseInt(ambulanceType, 10));
-
+  // Iterate through the available ambulances and match them to the requested types.
   for (const ambulance of availableAmbulances) {
-    const currentAmbulanceType = ambulance.ambulanceType;
+    const currentAmbulanceType = ambulance.type;
 
+    // If the current ambulance type is one of the requested types.
     if (requestedAmbulancesTypes.includes(currentAmbulanceType)) {
-      // An exact type match is saved as a candidate and counts toward
-      // fulfilling the ambulance request.
-      requestedAmbulances.requested[currentAmbulanceType].candidates ??= [];
-      requestedAmbulances.requested[currentAmbulanceType].candidates.push(
+      // Initialize the candidates array for the current ambulance type if it doesn't exist yet and add the ambulance to the candidates list for that type.
+      (requestedAmbulances.types[currentAmbulanceType].matches ??= []).push(
         ambulance,
       );
 
-      if (
-        requestedAmbulances.requested[currentAmbulanceType].toBeAssigned > 0
-      ) {
-        requestedAmbulances.requested[currentAmbulanceType].toBeAssigned--;
-        requestedAmbulances.toBeAssigned--;
+      // Decrement the pending count for the current ambulance type and the overall pending count if there are still pending ambulances of that type.
+      if (requestedAmbulances.types[currentAmbulanceType].pending > 0) {
+        requestedAmbulances.types[currentAmbulanceType].pending--;
+        requestedAmbulances.pending--;
       }
     } else {
-      // Otherwise, find the requested type with the smallest difference;
-      // if tied, prefer the lower type.
+      // Otherwise, find the nearest requested ambulance type to the current ambulance type and add the ambulance to the alternatives list for that nearest type.
       const nearestAmbulanceType = requestedAmbulancesTypes.reduce(
         (nearest, type) => {
+          // Calculate the absolute difference between the current ambulance type and the nearest type found so far, and the absolute difference between the current ambulance type and the current type being checked.
           const currentDifference = Math.abs(type - currentAmbulanceType);
           const nearestDifference = Math.abs(nearest - currentAmbulanceType);
 
+          // Return the type that is closer to the current ambulance type, or if they are equal, return the one with the lower value.
           return currentDifference < nearestDifference ||
             (currentDifference === nearestDifference && type < nearest)
             ? type
@@ -141,111 +41,91 @@ function assignCandidates(requestedAmbulances, availableAmbulances) {
         },
       );
 
-      // Approximate type matches are stored as alternatives and do not
-      // reduce the number of ambulances still to be assigned.
-      requestedAmbulances.requested[nearestAmbulanceType].alternatives ??= [];
-      requestedAmbulances.requested[nearestAmbulanceType].alternatives.push(
-        ambulance,
-      );
+      // Initialize the alternatives array for the nearest ambulance type if it doesn't exist yet and add the ambulance to the alternatives list for that nearest type.
+      (requestedAmbulances.types[nearestAmbulanceType].alternatives ??=
+        []).push(ambulance);
     }
   }
 }
 
-export async function algorithm() {
-  const timeMax = 30 * 60; // 30 minutes in milliseconds
-  const startTime = Date.now();
-  const ambulances = generateAmbulances();
-  const emergencie = {
-    latitude: 19.4326,
-    longitude: -99.1332,
-    h3_index: latLngToCell(19.4326, -99.1332, 5),
-  };
-  const requestedAmbulances = {
-    requested: {
-      3: {
-        quantity: 1,
-        toBeAssigned: 1,
-      },
-    },
-    toBeAssigned: 1,
-  };
-  const cells = {};
+export async function algorithm(ambulances, emergencie, requestedAmbulances) {
+  const startTime = Date.now(); // ELIMINAR EN PRODUCCION
+  // Initialize grids array to store ambulances by H3 cell distance from the emergency.
+  const grids = new Map();
 
-  // Cell distance and linear distance
+  // Calculate grid distances and linear distances for each ambulance relative to the emergency.
   for (const ambulance of ambulances) {
-    const distance = gridDistance(ambulance.h3_index, emergencie.h3_index);
+    const distance = h3.gridDistance(ambulance.h3_index, emergencie.h3_index);
 
-    ambulance.linearDistance = calculateLinearDistance(ambulance, emergencie);
+    ambulance.linearDistance = geoFunctions.calculateLinearDistance(
+      ambulance,
+      emergencie,
+    );
 
-    cells[distance] = cells[distance] || [];
-    cells[distance].push(ambulance);
+    // Initialize the grid list for this distance if it doesn't exist yet and group ambulances by their H3 cell distance from the emergency.
+    (
+      grids.get(distance) ?? (grids.set(distance, []), grids.get(distance))
+    ).push(ambulance);
   }
 
-  let ambulancesStack = [];
-  let googleMapsAPIRequests = 0;
+  let googleMapsAPIRequests = 0; // ELIMINAR EN PRODUCCION
 
-  const distances = Object.keys(cells);
-  const lastDistance = distances[distances.length - 1];
+  const distances = [...grids.keys()];
 
-  // For each distance in cells
-  for (const distance in cells) {
-    const currentAmbulances = cells[distance];
-    const isLastIteration = distance === lastDistance;
+  // For each distance in the grids
+  for (const [distance, ambulances] of grids) {
+    const currentAmbulances = ambulances;
+    const nextDistance = distances[distances.indexOf(distance) + 1];
+    const isLastIteration = nextDistance === undefined;
 
-    // If the sum of ambulances in the cell and ambulancesStack is below the amount of ambulances to be assigned, then push in the ambulancesStack and continue
+    // If the amount of ambulances in the current distance is less than the amount of ambulances left to be assigned, and it's not the last iteration, push them to the next distance and continue.
     if (
-      currentAmbulances.length + ambulancesStack.length <
-        requestedAmbulances.toBeAssigned &&
+      currentAmbulances.length < requestedAmbulances.pending &&
       !isLastIteration
     ) {
-      ambulancesStack.push(...currentAmbulances);
+      grids.get(nextDistance).push(...currentAmbulances);
       continue;
-    } else {
-      currentAmbulances.push(...ambulancesStack);
-      ambulancesStack = [];
     }
 
-    // Order by linear distance
+    // Order by linear distance to the emergency, so that ambulances closer to the emergency are prioritized.
     currentAmbulances.sort((a, b) => a.linearDistance - b.linearDistance);
 
-    // Send request of n-m ambulances to Google Route API
-    /*
-    for (
-      let i = 0;
-      i <
-      Math.ceil(currentAmbulances.length / requestedAmbulances.toBeAssigned);
-      i++
-    ) */
+    // While there are still ambulances in the current distance
     while (currentAmbulances.length) {
-      //let currentSliceStart = i * requestedAmbulances.toBeAssigned;
-      //let currentSliceEnd = (i + 1) * requestedAmbulances.toBeAssigned;
+      // Slice the current ambulances to the number of ambulances still to be assigned.
       let currentAmbulancesSlice = currentAmbulances.splice(
         0,
-        requestedAmbulances.toBeAssigned,
+        requestedAmbulances.pending,
       );
 
-      let ETAs = await calculateETA(currentAmbulancesSlice, emergencie);
-      googleMapsAPIRequests += currentAmbulancesSlice.length;
+      // Calculate ETAs for the current slice of ambulances using the Google Maps API.
+      let ETAs = await geoFunctions.calculateETA(
+        currentAmbulancesSlice,
+        emergencie,
+      );
+      googleMapsAPIRequests += currentAmbulancesSlice.length; // ELIMINAR EN PRODUCCION
 
-      let timeMaxExceeded = false;
-
-      for (let index = 0; index < currentAmbulancesSlice.length; index++) {
-        currentAmbulancesSlice[index].ETA = parseInt(ETAs[index].duration, 10);
-      }
+      // Assign ETAs to the current slice of ambulances and sort them by ETA.
+      currentAmbulancesSlice.forEach((ambulance, index) => {
+        ambulance.ETA = parseInt(ETAs[index].duration, 10);
+      });
 
       currentAmbulancesSlice.sort((a, b) => a.ETA - b.ETA);
 
-      for (let index = 0; index < currentAmbulancesSlice.length; index++) {
-        if (currentAmbulancesSlice[index].ETA > timeMax) {
-          currentAmbulancesSlice.splice(index);
-          timeMaxExceeded = true;
-          break;
-        }
-      }
+      // Find the index of the first ambulance that exceeds the maximum allowed time and remove all ambulances after that index.
+      const timeMaxIndex = currentAmbulancesSlice.findIndex(
+        (ambulance) => ambulance.ETA > params.timeMaxSeconds,
+      );
 
-      assignCandidates(requestedAmbulances, currentAmbulancesSlice);
+      let timeMaxExceeded = timeMaxIndex >= 0;
 
-      if (requestedAmbulances.toBeAssigned == 0 || timeMaxExceeded) {
+      if (timeMaxExceeded) currentAmbulancesSlice.splice(timeMaxIndex);
+
+      // Match the current slice of ambulances to the requested ambulances and update the requested ambulances object accordingly.
+      matchAmbulances(requestedAmbulances, currentAmbulancesSlice);
+
+      // If there are no more pending ambulances or if the maximum allowed time has been exceeded, break out of the loop.
+      if (requestedAmbulances.pending == 0 || timeMaxExceeded) {
         break;
       }
     }
@@ -260,8 +140,28 @@ export async function algorithm() {
   return requestedAmbulances;
 }
 
-algorithm();
+algorithm(
+  generateAmbulances(300),
+  {
+    latitude: 19.4326,
+    longitude: -99.1332,
+    h3_index: h3.latLngToCell(19.4326, -99.1332, 5),
+  },
+  {
+    types: {
+      1: {
+        needed: 1,
+        pending: 1,
+      },
+      3: {
+        needed: 1,
+        pending: 1,
+      },
+    },
+    pending: 2,
+  },
+);
 
-const service = { generateAmbulances, calculateLinearDistance, calculateETA };
+const service = { algorithm };
 
 export default service;

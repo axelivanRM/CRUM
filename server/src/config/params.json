@@ -1,3 +1,4 @@
 {
-  "emergencyDuplicateRadius": 500
+  "emergencyDuplicateRadius": 500,
+  "timeMaxSeconds": 1800
 }
