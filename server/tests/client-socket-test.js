@@ -2,7 +2,7 @@
 import { io } from 'socket.io-client';
 
 // ⚠️ CAMBIA ESTO por tu token real (o 'TOKEN_DE_PRUEBA_123' si usaste la Opción B)
-const TOKEN = '3baa4860fe7a1e8cef0f5095f83357c51040fb2d06a00b90b384e437b563d0f4';
+const TOKEN = '70ebd0ac56c1ca028979446b2246d6ef0beaf4d8c45fd32635fd6dd4fb0bae56';
 
 // Conexión al servidor enviando el token en el objeto 'auth'
 const socket = io('http://localhost:3000', {
@@ -10,6 +10,7 @@ const socket = io('http://localhost:3000', {
         token: TOKEN
     }
 });
+
 
 // --- EVENTO: Conexión exitosa ---
 socket.on('connect', () => {
@@ -19,14 +20,16 @@ socket.on('connect', () => {
     // Esperamos 1 segundo y enviamos una ubicación de prueba
     setTimeout(() => {
         const payload = {
+            status:"disponible",
+            type:1,
             lat: 19.4326,
             lng: -99.1332,
-            index: 1
+            h3Index: '8841431201hhhhh'
             // NO enviamos id_user (el servidor lo añade desde el token)
         };
 
         console.log('📤 Enviando update_position:', payload);
-        socket.emit('update_position', payload);
+        socket.emit('ambulance:status', payload);
     }, 1000);
 });
 

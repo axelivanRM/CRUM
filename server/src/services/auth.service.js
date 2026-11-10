@@ -3,10 +3,9 @@ import crypto from "crypto";
 import { verifyHash } from "../utils/hash.js";
 
 async function login({ user, password }) {
-
-    console.log(user, password);
+  console.log(user, password);
   //validate user and password in the database
-  const textQueryUsers = `SELECT user_id, username, password FROM users
+  const textQueryUsers = `SELECT user_id, username, password, totp_enabled, totp_secret_encrypted FROM users
                             WHERE username = $1`;
 
   const paramsQueryUsers = [user];
@@ -58,32 +57,31 @@ async function login({ user, password }) {
 }
 
 async function validateToken(token) {
-
-  console.log("Validando token:", token);
   //check if the token is provided
   if (!token) {
     throw new Error("Token no proporcionado");
   }
-  
+
   //hash the token
   const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
 
   //recover the token of the database
-  const textQuerySesiones = `SELECT user_id, expires_at FROM sessions 
+  const textQuery = `SELECT users.user_id, expires_at, role FROM sessions 
+                             JOIN users ON users.user_id = sessions.user_id
                              WHERE token = $1 AND expires_at > NOW()`;
-  const paramsQuerySesiones = [hashedToken];
-  const resultQuerySesiones = await query(textQuerySesiones, paramsQuerySesiones);
+  const paramsQuery = [hashedToken];
+  const resultQuery = await query(textQuery, paramsQuery);
 
-  //check if the token is valid 
-  if (resultQuerySesiones.rows.length === 0) {
-    throw new Error("Token inválido o expirado");
+  //check if the token is valid
+  if (resultQuery.rows.length === 0) {
+    return new Error("Token inválido o expirado");
   }
   return {
-    idUser: resultQuerySesiones.rows[0].user_id,
+    idUser: resultQuery.rows[0].user_id,
+    role: resultQuery.rows[0].role,
     expiresAt: resultQuerySesiones.rows[0].expires_at,
-  }
+  };
 }
-
 
 const service = { login, validateToken };
 

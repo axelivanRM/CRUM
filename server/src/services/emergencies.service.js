@@ -1,5 +1,5 @@
 import { query } from "../config/database.config.js";
-import { calculateDistance } from "./geo.service.js";
+import { calculateLinearDistance } from "../utils/geo-functions.js";
 import params from "../config/params.config.js";
 
 // Check whether the supplied ID belongs to a registered operator.
@@ -30,7 +30,7 @@ async function findDuplicateEmergency(emergency) {
   let duplicatedEmergencies = [];
 
   for (const activeEmergency of activeEmergencies) {
-    const distance = calculateDistance(
+    const distance = calculateLinearDistance(
       latitude,
       longitude,
       activeEmergency.latitude,
