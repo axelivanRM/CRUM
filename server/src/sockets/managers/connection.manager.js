@@ -2,6 +2,7 @@ import ambulancesEvents from "../events/ambulances.events.js";
 
 // Register a new socket connection and join the appropriate rooms based on user role
 function register(socket) {
+
   const { id, role } = socket.user;
 
   // Individual room for the user

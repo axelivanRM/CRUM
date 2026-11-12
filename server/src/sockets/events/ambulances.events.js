@@ -5,6 +5,10 @@ function events(socket) {
   socket.on("ambulance:status", (data) => {
     handler.status(socket, data);
   });
+
+   socket.on("disconnect", () => {
+    handler.disconnect(socket);
+  });
 }
 
 export default events;

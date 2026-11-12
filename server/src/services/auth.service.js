@@ -62,6 +62,7 @@ async function validateToken(token) {
     throw new Error("Token no proporcionado");
   }
 
+  console.log("validate token" + token)
   //hash the token
   const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
 
@@ -72,12 +73,16 @@ async function validateToken(token) {
   const paramsQuery = [hashedToken];
   const resultQuery = await query(textQuery, paramsQuery);
 
+  console.log("pepe" + resultQuery.rows.length);
+
+
   //check if the token is valid
   if (resultQuery.rows.length === 0) {
-    return new Error("Token inválido o expirado");
+    return null;
   }
+  
   return {
-    idUser: resultQuery.rows[0].user_id,
+    id: resultQuery.rows[0].user_id,
     role: resultQuery.rows[0].role,
     expiresAt: resultQuerySesiones.rows[0].expires_at,
   };
