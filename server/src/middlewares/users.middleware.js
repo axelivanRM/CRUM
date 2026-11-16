@@ -7,6 +7,8 @@ import service from "../services/users.service.js";
 async function validateRegistration(req, res, next) {
   let schema;
 
+  console.log(req.body);
+
   // Identify role
   switch (req.params.role) {
     case "admin":
