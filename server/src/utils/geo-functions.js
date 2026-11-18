@@ -69,9 +69,23 @@ export async function calculateETA(ambulances, emergencie) {
   return await response.json();
 }
 
+export function calculateETA_Test(ambulances, emergencie) {
+  const ETAs = ambulances.map((ambulance) => {
+    const distance = calculateLinearDistance(
+      { latitude: ambulance.latitude, longitude: ambulance.longitude },
+      { latitude: emergencie.latitude, longitude: emergencie.longitude },
+    );
+    const averageSpeed = 15;
+    const duration = (distance / averageSpeed) * 60;
+    return { originIndex: ambulances.indexOf(ambulance), duration };
+  });
+  return ETAs;
+}
+
 const geoFunctions = {
   calculateLinearDistance,
   calculateETA,
+  calculateETA_Test,
 };
 
 export default geoFunctions;

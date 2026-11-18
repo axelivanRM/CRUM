@@ -99,7 +99,7 @@ export async function algorithm(ambulances, emergencie, requestedAmbulances) {
       );
 
       // Calculate ETAs for the current slice of ambulances using the Google Maps API.
-      let ETAs = await geoFunctions.calculateETA(
+      let ETAs = await geoFunctions.calculateETA_Test(
         currentAmbulancesSlice,
         emergencie,
       );
