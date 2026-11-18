@@ -25,6 +25,17 @@ async function register(req, res) {
   return res.status(201).json({ message: "Usuario registrado exitosamente" });
 }
 
-const controller = { register };
+async function checkIfAdminExists(req, res){
+
+  try{
+    const exists = await service.adminExists();
+    return res.json({admin: exists});
+  }catch(error){
+    console.error("Error verificando admin:", error);
+    return res.status(500).json({ error: "Error interno del servidor" });
+  }
+}
+
+const controller = { register, checkIfAdminExists };
 
 export default controller;

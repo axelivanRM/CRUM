@@ -91,11 +91,21 @@ async function registerAdmin({ username, password }) {
   return result.rows[0]?.user_id ?? null;
 }
 
+async function adminExists(){
+
+  const textQuery = `SELECT EXISTS(SELECT 1 FROM users WHERE role = 3) AS exists`;
+  const resultQuery = await query(textQuery);
+
+  return resultQuery.rows[0].exists;
+}
+
+
 const service = {
   userExists,
   registerOperator,
   registerAmbulance,
   registerAdmin,
+  adminExists
 };
 
 export default service;

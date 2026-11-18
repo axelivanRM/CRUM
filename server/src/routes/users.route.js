@@ -7,6 +7,9 @@ const router = Router();
 // Middleware
 router.use("/register/:role", middleware.validateRegistration);
 
+// check if exists one admin
+router.get("/exist-admin", controller.checkIfAdminExists);
+
 // Routes
 router.post("/register/:role", controller.register);
 
