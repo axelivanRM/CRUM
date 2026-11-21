@@ -1,7 +1,6 @@
 import params from "../config/params.config.js";
 import h3 from "h3-js";
 import geoFunctions from "../utils/geo-functions.js";
-import { generateAmbulances } from "../utils/test.js";
 
 function matchAmbulances(requestedAmbulances, availableAmbulances) {
   // Store the requested ambulance types as an array of integers for easier comparison.
