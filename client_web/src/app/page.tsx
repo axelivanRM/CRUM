@@ -7,7 +7,7 @@ interface EmergencyFormProps {
   operatorId: number;
 }
 
-export default function Home({ operatorId }: EmergencyFormProps) {
+export default function Home() {
   const [ambulances, setAmbulances] = useState({
     transfer: 0,
     basic: 1,
@@ -32,7 +32,7 @@ const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
   const formData = new FormData(event.currentTarget);
 
   const emergency = {
-    operatorId,
+    operatorId: Number(formData.get("operatorId")),
     contactPhone: formData.get("contactPhone") as string,
     emergencyType: Number(formData.get("emergencyType")),
     description: formData.get("description") || null,
@@ -42,9 +42,8 @@ const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     ambulances,
   };
 
-  try {
     const response = await fetch(
-      `http://localhost:8080/emergencies/new`,
+      `${process.env.NEXT_PUBLIC_API_URL}/emergencies/new`,
       {
         method: "POST",
         headers: {
@@ -57,15 +56,7 @@ const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
 
     const data = await response.json();
 
-    if (!response.ok) {
-      throw new Error(data.message || "Error al registrar la emergencia");
-    }
-
-    console.log("Emergencia registrada:", data);
-    
-  } catch (error) {
-    console.error("Error:", error);
-  }
+    console.log(data);
 };
 
 
@@ -86,6 +77,16 @@ const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
 
         <section>
           <h2>Ubicación</h2>
+
+          <label htmlFor="operatorId">
+            ID del operador
+          </label>
+          
+          <input
+            type="number"
+            id="operatorId"
+            name="operatorId"
+          />
 
           <label htmlFor="address">
             Dirección del incidente

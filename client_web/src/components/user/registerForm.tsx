@@ -11,8 +11,8 @@ const [role, setRole] = useState("");
 const handleSubmit = async (e: React.SubmitEvent) => {
   e.preventDefault();
 
-  try{
-    const response = await fetch('http://localhost:3000/users/register/admin',{
+    console.log("Datos enviados para registro:", `${process.env.NEXT_PUBLIC_API_URL}/users/register/admin`);
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/register/admin`,{
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -26,16 +26,6 @@ const handleSubmit = async (e: React.SubmitEvent) => {
 
     const data = await response.json();
     console.log(data);
-    
-    if(!response.ok){
-      throw new Error(data.message || "Error en el registro de usurio");
-    }
-
-  }catch(error){
-    const message =
-        error instanceof Error ? error.message : "Error desconocido";
-      console.error("Error en el login:", message);
-  }
 };
 
 

@@ -20,7 +20,12 @@ const PORT = process.env.PORT || 8080;
 
 // Middlewares globales
 app.use(helmet());
-app.use(cors());
+app.use(cors(
+  {
+    origin: process.env.CLIENT_URL,
+    credentials: true
+  }
+));
 app.use(express.json());
 
 // API Routes
@@ -31,12 +36,6 @@ app.use("/users", userRoutes);
 app.use("/auth", authRoutes);
 app.use("/emergencies", emergenciesRoutes);
 
-// testing route for testing the server connection with next
-app.get("/saludo", (req, res) => {
-  const x = "hola como estas";
-  console.log("📤 Enviando saludo al cliente:", x);
-  res.json({ mensaje: x });
-});
 // Manejo de errores
 app.use(notFound);
 app.use(errorHandler);

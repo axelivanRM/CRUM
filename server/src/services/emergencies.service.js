@@ -31,10 +31,8 @@ async function findDuplicateEmergency(emergency) {
 
   for (const activeEmergency of activeEmergencies) {
     const distance = calculateLinearDistance(
-      latitude,
-      longitude,
-      activeEmergency.latitude,
-      activeEmergency.longitude,
+      { latitude, longitude },
+      { latitude: activeEmergency.latitude, longitude: activeEmergency.longitude }
     );
     if (distance <= params.emergencyDuplicateRadius) {
       duplicatedEmergencies.push(activeEmergency);
