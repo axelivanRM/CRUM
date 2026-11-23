@@ -1,5 +1,4 @@
 import { emergencySchema } from "../schemas/emergency.schema.js";
-import service from "../services/emergencies.service.js";
 
 // Validate the request payload and confirm its operator exists before creation.
 async function validateEmergency(req, res, next) {

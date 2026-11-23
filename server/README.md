@@ -742,7 +742,7 @@ pending and assigned quantities for each ambulance type.
       },
       "status": "ACTIVE"
     },
-    "ambulanceRequests": [
+    "assignments": [
       {
         "id": 250,
         "emergencyId": 105,

@@ -2,28 +2,17 @@ import { userSchema } from "../schemas/user.schema.js";
 
 async function validateCredentials(req, res, next) {
   // Verify schema
-  const result = userSchema.safeParse(req.body);
+  const validation = userSchema.safeParse(req.body);
 
   // If the payload does not match the role-specific schema,
   // return the validation details so the client can correct the request.
- if (!result.success) {
+  if (!validation.success) {
     return res.status(400).json({
       success: false,
       message: "Invalid user credentials.",
-      error: {
-        code: "Error in middleware login",
-        details: result.error.issues.map(({ path, message }) => ({
-          field: path.join("."),
-          message,
-        })),
-      },
+      error: validation.error.issues,
     });
   }
-
-  req.body = {
-    user: result.data.username,
-    password: result.data.password,
-  };
 
   next();
 }
