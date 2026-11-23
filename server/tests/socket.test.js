@@ -2,9 +2,9 @@ import { io } from "socket.io-client";
 import { latLngToCell } from "h3-js";
 
 // Configuración
-const TOTAL_CLIENTES = 5;
-const INTERVALO_MIN = 1000;
-const INTERVALO_MAX = 3000;
+const TOTAL_CLIENTES = 300;
+const INTERVALO_MIN = 30000;
+const INTERVALO_MAX = 30000;
 
 // Resolución H3
 const H3_RESOLUTION = 9;
@@ -22,9 +22,13 @@ const OPERATIONAL_BASES = ["CRUM", "ERUM", "IMSS", "ISSSTE", "CRUZ_ROJA"];
 const AVAILABILITY_STATUSES = [
   "AVAILABLE",
   "UNAVAILABLE",
-  "HEADING",
-  "ON_SERVICE",
+  "EN_ROUTE",
+  "ON_SCENE",
+  "HOSPITAL_REQUEST",
+  "TRANSPORTING",
+  "ON_HOSPITAL",
 ];
+const RECEIVING_ASSIGNMENTS = [true, true, false];
 
 const ambulancias = [];
 
@@ -59,20 +63,29 @@ function generarPayload(i) {
   const h3Index = latLngToCell(latitude, longitude, H3_RESOLUTION);
 
   return {
-    id: i + 1,
-    licensePlate: `AMB-${String(i + 1).padStart(3, "0")}`,
-    ambulanceType: AMBULANCE_TYPES[aleatorioEntero(0, AMBULANCE_TYPES.length - 1)],
-    operationalBase:
-      OPERATIONAL_BASES[aleatorioEntero(0, OPERATIONAL_BASES.length - 1)],
-    availabilityStatus:
-      AVAILABILITY_STATUSES[aleatorioEntero(0, AVAILABILITY_STATUSES.length - 1)],
-    location: {
-      latitude,
-      longitude,
-      h3Index,
+    data: {
+      id: i + 1,
+      licensePlate: `AMB-${String(i + 1).padStart(3, "0")}`,
+      ambulanceType:
+        AMBULANCE_TYPES[aleatorioEntero(0, AMBULANCE_TYPES.length - 1)],
+      operationalBase:
+        OPERATIONAL_BASES[aleatorioEntero(0, OPERATIONAL_BASES.length - 1)],
+      status:
+        AVAILABILITY_STATUSES[
+          aleatorioEntero(0, AVAILABILITY_STATUSES.length - 1)
+        ],
+      isReceivingAssignment:
+        RECEIVING_ASSIGNMENTS[
+          aleatorioEntero(0, RECEIVING_ASSIGNMENTS.length - 1)
+        ],
+      location: {
+        latitude,
+        longitude,
+        h3Index,
+      },
     },
-    timestamp: new Date().toISOString(),
-    test: true
+    timestamp: new Date(),
+    test: true, // Indica que es un envío de prueba
   };
 }
 
@@ -80,11 +93,12 @@ console.log(`🚀 Iniciando simulación de ${TOTAL_CLIENTES} ambulancias...\n`);
 
 // Crear clientes
 for (let i = 0; i < TOTAL_CLIENTES; i++) {
-  const TOKEN_UNICO = `token_ambulancia_${i + 1}`;
+  await new Promise((resolve) => setTimeout(resolve, aleatorioEntero(0, 3000)));
 
   const socket = io("http://localhost:3000", {
     auth: {
-      token: TOKEN_UNICO,
+      id: i + 1,
+      role: "AMBULANCE",
       test: true,
     },
   });
@@ -107,7 +121,7 @@ for (let i = 0; i < TOTAL_CLIENTES; i++) {
         payload,
       });
 
-      socket.emit("ambulance:status", payload);
+      socket.emit("ambulance:data.update", payload);
 
       // Programar siguiente envío
       programarEnvio();
@@ -116,25 +130,10 @@ for (let i = 0; i < TOTAL_CLIENTES; i++) {
 
   // Conexión
   socket.on("connect", () => {
-    console.log(`✅ [Ambulancia ${i + 1}] Conectada: ${socket.id}`);
-
-    // Primer envío
-    const payload = generarPayload(i);
-
-    console.log(`📤 [Ambulancia ${i + 1}] Primer envío`, payload);
-
-    socket.emit("ambulance:status", payload);
+    console.log(`✅ [Ambulancia ${i + 1}]`);
 
     // Iniciar envíos aleatorios
     programarEnvio();
-  });
-
-  socket.on("server:assignment", (payload, callback) => {
-    console.log("Posición recibida:", payload);
-    // Responder al cliente
-    callback({
-      response: true,
-    });
   });
 
   // Desconexión

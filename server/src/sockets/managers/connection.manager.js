@@ -5,6 +5,8 @@ function register(socket) {
 
   const { id, role } = socket.user;
 
+  console.log(`User connected: ${id} with role: ${role}`);
+
   // Individual room for the user
   socket.join(`user:${id}`);
 

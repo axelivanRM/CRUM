@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS users (
     user_id SERIAL PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
-    role SMALLINT NOT NULL CHECK (role IN (1, 2, 3)),
+    role SMALLINT NOT NULL CHECK (role IN ("AMBULANCE", "OPERATOR", "ADMIN")),
 	totp_enabled boolean DEFAULT false,
 	totp_secret_encrypted  TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS ambulances (
     ambulance_id INT PRIMARY KEY,
     license_plate VARCHAR(10) NOT NULL,
     ambulance_type VARCHAR(15) NOT NULL CHECK (ambulance_type IN ("TRANSPORT", "BASIC", "ADVANCED", "INTENSIVE_CARE")),
-    operating_base VARCHAR(100) NOT NULL,
+    operational_base VARCHAR(100) NOT NULL,
     CONSTRAINT fk_ambulance_user
         FOREIGN KEY (ambulance_id)
         REFERENCES users(user_id)
@@ -88,7 +88,7 @@ CREATE TABLE IF NOT EXISTS assignments (
     numeric_rating SMALLINT CHECK (numeric_rating BETWEEN 1 AND 5),
     comment TEXT,
     status VARCHAR(15) NOT NULL DEFAULT 'SEARCHING'
-        CHECK (status IN ('SEARCHING', 'ASSIGNING', 'EN_ROUTE', 'IN_SERVICE', 'FINISHED', 'CANCELLED')),
+        CHECK (status IN ('SEARCHING', 'ASSIGNING', 'EN_ROUTE', 'ON_SCENE', 'HOSPITAL_REQUEST', 'TRANSPORTING', 'ON_HOSPITAL', 'CONNECTION_LOST', 'COMPLETED', 'CANCELLED')),
     CONSTRAINT fk_assignment_emergency
         FOREIGN KEY (emergency_id)
         REFERENCES emergencies(emergency_id)

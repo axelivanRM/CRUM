@@ -78,7 +78,7 @@ Represents an ambulance registered in the system.
   "licensePlate": "ABC-123",
   "ambulanceType": "BASIC",
   "operationalBase": "CRUM",
-  "availabilityStatus": "AVAILABLE",
+  "status": "AVAILABLE",
   "isReceivingAssignments": true,
   "location": {
     "latitude": 19.5102018,
@@ -138,13 +138,15 @@ Value Description
 ---
 
 `AVAILABLE` Available to receive assignments.
-`ASSIGNED` Has an assigned emergency.
+`UNAVAILABLE` Unavailable to receive assignments.
+`EN_ROUTE` En route to the incident scene.
 `ON_SCENE` At the incident scene.
+`HOSPITAL_REQUEST` Hospital transport request
 `TRANSPORTING` Transporting the patient.
-`UNAVAILABLE` Unavailable.
+`ON_HOSPITAL` At the hospital.
 `DISCONNECTED` Disconnected from the system.
 
-`availabilityStatus` represents the unit's operational status.
+`status` represents the unit's operational status.
 `isReceivingAssignments` indicates whether the unit is enabled to
 receive new assignments; the two attributes serve different purposes.
 
@@ -385,8 +387,12 @@ Attribute Type Description
 - `SEARCHING`
 - `ASSIGNING`
 - `EN_ROUTE`
-- `IN_SERVICE`
-- `FINISHED`
+- `ON_SCENE`
+- `HOSPITAL_REQUEST`
+- `ON_HOSPITAL`
+- `CONNECTION_LOST`
+- `COMPLETED`
+- `CANCELLED`
 
 ## 3.8 Message
 
