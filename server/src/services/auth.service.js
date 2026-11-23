@@ -3,19 +3,16 @@ import crypto from "crypto";
 import { verifyHash } from "../utils/hash.js";
 
 async function login({ user, password }) {
-  console.log(user, password);
+
   //validate user and password in the database
   const textQueryUsers = `SELECT user_id, username, password, totp_enabled, totp_secret_encrypted FROM users
                             WHERE username = $1`;
-
   const paramsQueryUsers = [user];
   const resultQueryUsers = await query(textQueryUsers, paramsQueryUsers);
 
   // If the user is not found or the password is invalid, throw an error
   if (resultQueryUsers.rows.length === 0) {
-    throw new Error(
-      "Verifica tus credenciales o pide a tu administrador que te registre",
-    );
+    return false;
   }
 
   //verify the password using the verify function from hash.js
@@ -25,14 +22,11 @@ async function login({ user, password }) {
   );
 
   if (!isPasswordValid) {
-    throw new Error(
-      "Verifica tus credenciales o pide a tu administrador que te registre",
-    );
+    return false;
   }
 
   //if the user is found, generate a token and store it in the sessions table
   const token = crypto.randomBytes(32).toString("hex");
-  console.log("Token generado:", token);
   const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
   const expiresAt = new Date(Date.now() + 2 * 60 * 60 * 1000); // 2 hours in milliseconds to prove it
 
@@ -49,20 +43,18 @@ async function login({ user, password }) {
   );
 
   return {
-    id: resultQueryUsers.rows[0].user_id,
-    user: resultQueryUsers.rows[0].username,
-    token: token,
-    expiresAt: resultQuerySesiones.rows[0].expires_at,
+    user: {
+      id: resultQueryUsers.rows[0].user_id,
+      username: resultQueryUsers.rows[0].username,
+      role: resultQueryUsers.rows[0].role,
+    },
+    token: { token: token, expiresAt: resultQuerySesiones.rows[0].expires_at },
   };
 }
 
 async function validateToken(token) {
-  //check if the token is provided
-  if (!token) {
-    throw new Error("Token no proporcionado");
-  }
 
-  console.log("validate token" + token)
+  console.log("validate token" + token);
   //hash the token
   const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
 
@@ -75,12 +67,11 @@ async function validateToken(token) {
 
   console.log("pepe" + resultQuery.rows.length);
 
-
   //check if the token is valid
   if (resultQuery.rows.length === 0) {
-    return null;
+    return false;
   }
-  
+
   return {
     id: resultQuery.rows[0].user_id,
     role: resultQuery.rows[0].role,
