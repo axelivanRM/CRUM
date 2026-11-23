@@ -29,18 +29,29 @@ async function validateRegistration(req, res, next) {
   // return the validation details so the client can correct the request.
   if (!result.success) {
     return res.status(400).json({
-      message: "Error de validación",
-      errors: result.error.issues.map(({ path, message }) => ({
-        field: path.join("."),
-        message,
-      })),
+      success: false,
+      message: "Invalid user data.",
+      error: {
+        code: "Error in middleware users",
+        details: result.error.issues.map(({ path, message }) => ({
+          field: path.join("."),
+          message,
+        })),
+      },
     });
   }
 
   // Ensure the username is unique in the users table before continuing.
   if (await service.userExists(req.body.username)) {
     return res.status(409).json({
-      message: "El usuario ya existe",
+      success: false,
+      message: "The user already exists in data base",
+      error: {
+        code: "Error in middleware users",
+        details: [{
+          field: result.data
+        }]
+      }
     });
   }
 
@@ -48,7 +59,17 @@ async function validateRegistration(req, res, next) {
   if (req.params.role === "admin") {
     if (req.body.accessPassword !== process.env.ADMIN_ACCESS_PASSWORD) {
       return res.status(403).json({
-        message: "Contraseña de acceso incorrecta",
+        success: false,
+        message: "Incorrect access password",
+        error: {
+          code: "Error in middleware users",
+          details: [
+            {
+              field: req.body.accessPassword,
+              message: "Incorrect access password",
+            },
+          ],
+        },
       });
     }
   }

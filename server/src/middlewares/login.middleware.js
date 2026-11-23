@@ -6,13 +6,17 @@ async function validateCredentials(req, res, next) {
 
   // If the payload does not match the role-specific schema,
   // return the validation details so the client can correct the request.
-  if (!result.success) {
+ if (!result.success) {
     return res.status(400).json({
-      message: "Error de validación",
-      errors: result.error.issues.map(({ path, message }) => ({
-        field: path.join("."),
-        message,
-      })),
+      success: false,
+      message: "Invalid user credentials.",
+      error: {
+        code: "Error in middleware login",
+        details: result.error.issues.map(({ path, message }) => ({
+          field: path.join("."),
+          message,
+        })),
+      },
     });
   }
 

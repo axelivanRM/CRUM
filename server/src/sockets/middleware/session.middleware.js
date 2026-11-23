@@ -12,10 +12,12 @@ async function authenticateSession(socket, next) {
   }
   // Get the token from the socket handshake
   const token = socket.handshake.auth?.token;
-  console.log("token mal");
 
   if (!token) {
-    return next(new Error("Token no proporcionado"));
+    return {
+      success: false,
+      message: "token not provided"
+    };
   }
 
   console.log(token)
@@ -24,15 +26,11 @@ async function authenticateSession(socket, next) {
 
   console.log(user);
 
-if (user == null) {
-    console.log("Autenticación rechazada: usuario inexistente");
-    const error = new Error("Usuario no encontrado o sesión inválida");
-    error.data = {
-        code: "USER_NOT_FOUND",
-        message: "No fue posible identificar al usuario."
-    };
-
-    return next(error);
+if (user == false) {
+  return{
+    success: false,
+    message: "Token invalidated"
+  }
 }
 
   // Attach the user data to the socket object

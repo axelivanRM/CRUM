@@ -17,6 +17,15 @@ const CDMX_BOUNDS = {
   maxLong: -98.94,
 };
 
+const AMBULANCE_TYPES = ["BASIC", "ADVANCED", "INTENSIVE_CARE"];
+const OPERATIONAL_BASES = ["CRUM", "ERUM", "IMSS", "ISSSTE", "CRUZ_ROJA"];
+const AVAILABILITY_STATUSES = [
+  "AVAILABLE",
+  "UNAVAILABLE",
+  "HEADING",
+  "ON_SERVICE",
+];
+
 const ambulancias = [];
 
 // Generar número aleatorio entre mínimo y máximo
@@ -28,11 +37,11 @@ const aleatorioEntero = (min, max) => Math.floor(aleatorio(min, max + 1));
 // Generar coordenada aleatoria dentro de CDMX
 function generarCoordenadas() {
   const latitude = Number(
-    aleatorio(CDMX_BOUNDS.minLat, CDMX_BOUNDS.maxLat).toFixed(6),
+    aleatorio(CDMX_BOUNDS.minLat, CDMX_BOUNDS.maxLat).toFixed(7),
   );
 
   const longitude = Number(
-    aleatorio(CDMX_BOUNDS.minLong, CDMX_BOUNDS.maxLong).toFixed(6),
+    aleatorio(CDMX_BOUNDS.minLong, CDMX_BOUNDS.maxLong).toFixed(7),
   );
 
   return {
@@ -50,16 +59,20 @@ function generarPayload(i) {
   const h3Index = latLngToCell(latitude, longitude, H3_RESOLUTION);
 
   return {
-    status: ["available", "unavailable", "heading", "on service"][
-      aleatorioEntero(0, 3)
-    ],
-
-    type: aleatorioEntero(1, 4),
-
-    latitude,
-    longitude,
-
-    h3Index,
+    id: i + 1,
+    licensePlate: `AMB-${String(i + 1).padStart(3, "0")}`,
+    ambulanceType: AMBULANCE_TYPES[aleatorioEntero(0, AMBULANCE_TYPES.length - 1)],
+    operationalBase:
+      OPERATIONAL_BASES[aleatorioEntero(0, OPERATIONAL_BASES.length - 1)],
+    availabilityStatus:
+      AVAILABILITY_STATUSES[aleatorioEntero(0, AVAILABILITY_STATUSES.length - 1)],
+    location: {
+      latitude,
+      longitude,
+      h3Index,
+    },
+    timestamp: new Date().toISOString(),
+    test: true
   };
 }
 

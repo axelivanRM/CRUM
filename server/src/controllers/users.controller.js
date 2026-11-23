@@ -15,24 +15,48 @@ async function register(req, res) {
       result = await service.registerAdmin(data);
       break;
     default:
-      return res.status(400).json({ error: "Rol no válido" });
+      return res.status(400).json({
+        success: false,
+        message: "Invalid role",
+      });
   }
 
-  if (!result) {
-    return res.status(500).json({ error: "Error al registrar el usuario" });
+  if (!result?.success) {
+    return res.status(500).json({
+      success: false,
+      message: result?.message || "Error registering the user",
+      error: {
+        code: "Error in users services",
+        details: [{field: data }],
+      },
+    });
   }
 
-  return res.status(201).json({ message: "Usuario registrado exitosamente" });
+  return res.status(201).json({
+    success: true,
+    message: "User successfully registered",
+    data: {
+      result,
+    },
+  });
 }
 
-async function checkIfAdminExists(req, res){
-
-  try{
+async function checkIfAdminExists(req, res) {
+  try {
     const exists = await service.adminExists();
-    return res.json({admin: exists});
-  }catch(error){
+    return res.json({
+      success: true,
+      message: "User successfully registered",
+      data: {
+        admin: { exists },
+      },
+    });
+  } catch (error) {
     console.error("Error verificando admin:", error);
-    return res.status(500).json({ error: "Error interno del servidor" });
+    return res.status(500).json({
+      success: false,
+      message: "Internal error (controller users)",
+    });
   }
 }
 

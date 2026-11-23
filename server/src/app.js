@@ -16,7 +16,7 @@ import authRoutes from "./routes/auth.route.js";
 import emergenciesRoutes from "./routes/emergencies.route.js";
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8080;
 
 // Middlewares globales
 app.use(helmet());
