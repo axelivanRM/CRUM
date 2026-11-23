@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS operators (
 CREATE TABLE IF NOT EXISTS ambulances (
     ambulance_id INT PRIMARY KEY,
     license_plate VARCHAR(10) NOT NULL,
-    ambulance_type SMALLINT NOT NULL CHECK (ambulance_type IN (1, 2, 3, 4)),
+    ambulance_type VARCHAR(15) NOT NULL CHECK (ambulance_type IN ("TRANSPORT", "BASIC", "ADVANCED", "INTENSIVE_CARE")),
     operating_base VARCHAR(100) NOT NULL,
     CONSTRAINT fk_ambulance_user
         FOREIGN KEY (ambulance_id)
@@ -48,13 +48,16 @@ CREATE TABLE IF NOT EXISTS emergencies (
     emergency_id SERIAL PRIMARY KEY,
     operator_id INT NOT NULL,
     contact_phone VARCHAR(20) NOT NULL,
-    emergency_type SMALLINT NOT NULL CHECK (emergency_type IN (1, 2, 3)),
+    emergency_type VARCHAR(10) NOT NULL
+        CHECK (emergency_type IN ('HIGH', 'MEDIUM', 'LOW')),
+    status VARCHAR(10) NOT NULL DEFAULT 'ACTIVE'
+        CHECK (status IN ('ACTIVE', 'COMPLETED', 'CANCELLED')),
     description TEXT,
     latitude DECIMAL(10, 8) NOT NULL,
     longitude DECIMAL(11, 8) NOT NULL,
     started_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     closed_at TIMESTAMP WITH TIME ZONE,
-    conversation JSONB,
+    tracking JSONB,
     CONSTRAINT fk_emergency_operator
         FOREIGN KEY (operator_id)
         REFERENCES operators(operator_id)
@@ -65,14 +68,16 @@ CREATE TABLE IF NOT EXISTS assignments (
     assignment_id SERIAL PRIMARY KEY,
     emergency_id INT NOT NULL,
     ambulance_id INT,
-    assigned_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    arrived_at TIMESTAMP WITH TIME ZONE,
-    requested_ambulance_type SMALLINT NOT NULL
-        CHECK (requested_ambulance_type IN (1, 2, 3)),
+    requested_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    assigned_at TIMESTAMP WITH TIME ZONE,
+    requested_ambulance_type VARCHAR(15) NOT NULL
+        CHECK (requested_ambulance_type IN ('TRANSPORT', 'BASIC', 'ADVANCED', 'INTENSIVE_CARE')),
     justification VARCHAR(100),
     route JSONB,
     numeric_rating SMALLINT CHECK (numeric_rating BETWEEN 1 AND 5),
     comment TEXT,
+    status VARCHAR(15) NOT NULL DEFAULT 'SEARCHING'
+        CHECK (status IN ('SEARCHING', 'ASSIGNING', 'EN_ROUTE', 'IN_SERVICE', 'FINISHED', 'CANCELLED')),
     CONSTRAINT fk_assignment_emergency
         FOREIGN KEY (emergency_id)
         REFERENCES emergencies(emergency_id)

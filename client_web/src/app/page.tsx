@@ -34,7 +34,7 @@ const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
   const emergency = {
     operatorId: Number(formData.get("operatorId")),
     contactPhone: formData.get("contactPhone") as string,
-    emergencyType: Number(formData.get("emergencyType")),
+    emergencyType: formData.get("emergencyType") as "HIGH" | "MEDIUM" | "LOW",
     description: formData.get("description") || null,
     latitude: Number(formData.get("latitude")),
     longitude: Number(formData.get("longitude")),
@@ -169,7 +169,7 @@ const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
                 type="radio"
                 id="high"
                 name="emergencyType"
-                value={1}
+                value="HIGH"
                 required
               />
               <label htmlFor="high">Prioridad alta</label>
@@ -180,7 +180,7 @@ const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
                 type="radio"
                 id="medium"
                 name="emergencyType"
-                value={2}
+                value="MEDIUM"
               />
               <label htmlFor="medium">Prioridad media</label>
             </div>
@@ -190,7 +190,7 @@ const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
                 type="radio"
                 id="low"
                 name="emergencyType"
-                value={3}
+                value="LOW"
               />
               <label htmlFor="low">Prioridad baja</label>
             </div>

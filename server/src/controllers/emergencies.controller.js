@@ -5,20 +5,20 @@ async function newEmergency(req, res) {
   const duplicates = await service.findDuplicateEmergency(req.body);
 
   if (duplicates && !req.body.ignoreDuplicates) {
-    return res
-      .status(409)
-      .json({ warning: "La emergencia podría estar duplicada", duplicates });
+    return res.status(409).json({
+      success: false,
+      message: "La emergencia podría estar duplicada",
+      error: { duplicates },
+    });
   }
 
-  const result = await service.createEmergency(req.body);
+  const data = await service.newEmergency(req.body);
 
-  if (!result) {
-    return res.status(500).json({ error: "Error al crear la emergencia" });
-  }
-
-  return res
-    .status(201)
-    .json({ message: "Emergencia creada exitosamente", emergency_id: result });
+  return res.status(201).json({
+    success: true,
+    message: "Emergencia creada exitosamente",
+    data,
+  });
 }
 
 const controller = { newEmergency };

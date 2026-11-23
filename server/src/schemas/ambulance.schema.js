@@ -7,13 +7,10 @@ export const ambulanceSchema = userSchema.extend({
     .trim()
     .min(1, { error: "Las placas son obligatorias" })
     .max(10, { error: "Las placas no pueden superar los 10 caracteres" }),
-
-  ambulanceType: z
-    .number({ error: "El tipo de ambulancia debe ser un número del 1 al 4" })
-    .int({ error: "El tipo de ambulancia debe ser un número entero" })
-    .min(1, { error: "El tipo de ambulancia debe ser del 1 al 4" })
-    .max(4, { error: "El tipo de ambulancia debe ser del 1 al 4" }),
-
+  ambulanceType: z.enum(
+    ["TRANSPORT", "BASIC", "ADVANCED", "INTENSIVE_CARE"],
+    { error: "El tipo de ambulancia debe ser válido" },
+  ),
   operationalBase: z
     .string({ error: "La base operativa es obligatoria" })
     .trim()

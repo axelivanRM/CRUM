@@ -3,10 +3,9 @@ export default function errorHandler(err, req, res, next) {
     return next(err);
   }
 
-  console.error("Error no controlado:", err);
-
   res.status(500).json({
-    status: "error",
+    success: false,
     message: "Error interno del servidor",
+    error: err.detail || err.message || err || "Ocurrió un error inesperado",
   });
 }

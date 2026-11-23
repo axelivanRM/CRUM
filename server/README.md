@@ -236,10 +236,9 @@ Represents a medical incident from registration through closure.
   "description": "Patient injured in a traffic accident",
   "location": {
     "latitude": 19.5102018,
-    "longitude": -99.1258884,
-    "h3Index": "8c2a1072b59ffff"
+    "longitude": -99.1258884
   },
-  "status": "PENDING_ASSIGNMENT"
+  "status": "ACTIVE"
 }
 ```
 
@@ -282,7 +281,7 @@ emergency.
 
 ### 3.4.2 `status` Values
 
-- `IN_PROGRESS`
+- `ACTIVE`
 - `COMPLETED`
 - `CANCELLED`
 
@@ -301,15 +300,11 @@ Each item identifies the unit type and the required quantity.
   "ambulanceRequests": [
     {
       "ambulanceType": "TRANSPORT",
-      "quantityRequested": 1,
-      "quantityPending": 1,
-      "quantityAssigned": 0
+      "quantity": 1
     },
     {
       "ambulanceType": "ADVANCED",
-      "quantityRequested": 1,
-      "quantityPending": 1,
-      "quantityAssigned": 0
+      "quantity": 1
     }
   ]
 }
@@ -368,10 +363,8 @@ may have multiple assignments, each with its own status.
   "id": 250,
   "emergencyId": 105,
   "ambulanceId": 12,
-  "status": "PENDING",
-  "assignedAt": "2026-11-19T15:32:00Z",
-  "acceptedAt": null,
-  "rejectedAt": null
+  "status": "SEARCHING",
+  "requestedAmbulanceType": "BASIC"
 }
 ```
 
@@ -389,15 +382,15 @@ Attribute Type Description
 
 ### 3.7.1 `status` Values
 
-- `PENDING`
-- `ACCEPTED`
-- `REJECTED`
-- `CANCELLED`
-- `COMPLETED`
+- `SEARCHING`
+- `ASSIGNING`
+- `EN_ROUTE`
+- `IN_SERVICE`
+- `FINISHED`
 
 ## 3.8 Message
 
-Represents a message exchanged between the operator and ambulance
+Represents a message exchanged bet|een the operator and ambulance
 ambulance.
 
 ```json
@@ -716,11 +709,11 @@ quantities.
   "ambulanceRequests": [
     {
       "ambulanceType": "TRANSPORT",
-      "quantityRequested": 1
+      "quantity": 1
     },
     {
       "ambulanceType": "ADVANCED",
-      "quantityRequested": 1
+      "quantity": 1
     }
   ],
   "ignoreDuplicates": false
@@ -739,28 +732,32 @@ pending and assigned quantities for each ambulance type.
   "data": {
     "emergency": {
       "id": 105,
-      "status": "PENDING",
-      "emergencyType": "HIGH"
+      "operatorId": 5,
+      "contactPhone": "5635049272",
+      "emergencyType": "HIGH",
+      "description": "Patient injured in a traffic accident",
+      "location": {
+        "latitude": 19.5102018,
+        "longitude": -99.1258884
+      },
+      "status": "ACTIVE"
     },
     "ambulanceRequests": [
       {
-        "ambulanceType": "TRANSPORT",
-        "quantityRequested": 1,
-        "quantityAssigned": 0,
-        "quantityPending": 1
+        "id": 250,
+        "emergencyId": 105,
+        "ambulanceId": NULL,
+        "status": "SEARCHING",
+        "requestedAmbulanceType": "TRANSPORT"
       },
       {
-        "ambulanceType": "ADVANCED",
-        "quantityRequested": 1,
-        "quantityAssigned": 0,
-        "quantityPending": 1
+        "id": 251,
+        "emergencyId": 105,
+        "ambulanceId": NULL,
+        "status": "SEARCHING",
+        "requestedAmbulanceType": "ADVANCED"
       }
-    ],
-    "assignmentSummary": {
-      "totalRequested": 2,
-      "totalAssigned": 0,
-      "totalPending": 2
-    }
+    ]
   }
 }
 ```

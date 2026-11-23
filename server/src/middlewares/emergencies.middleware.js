@@ -7,17 +7,10 @@ async function validateEmergency(req, res, next) {
 
   // Return the schema issues without querying the database for invalid input.
   if (!validation.success) {
-    return res.status(400).json({ error: validation.error.issues });
-  }
-
-  // Reject emergency requests that reference a non-existent operator.
-  const isValidOperator = await service.operatorExists(
-    validation.data.operatorId,
-  );
-
-  if (!isValidOperator) {
     return res.status(400).json({
-      error: "operatorId does not belong to an existing operator",
+      success: false,
+      message: "Datos de emergencia inválidos",
+      error: validation.error.issues,
     });
   }
 

@@ -143,7 +143,6 @@ async function hola(request) {
   const candidates = algorithm(emergencie, request);
 
   if (request.pending == candidates.pending) {
-    
     socket.emit("server:algorithm-options", {
       emergencyId: request.emergencyId,
       message: "No se encontró una ambulancia disponible.",
