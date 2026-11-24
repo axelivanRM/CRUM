@@ -6,6 +6,8 @@ import cors from "cors";
 
 import { query } from "./config/database.config.js";
 import params, { initParams } from "./config/params.config.js";
+import {getAmbulances} from "./config/ambulances.config.js"
+import {algorithm} from "./services/algorithm.service.js"
 
 import notFound from "./middlewares/not-found.middleware.js";
 import errorHandler from "./middlewares/error-handler.middleware.js";
@@ -36,6 +38,10 @@ app.use("/users", userRoutes);
 app.use("/auth", authRoutes);
 app.use("/emergencies", emergenciesRoutes);
 
+app.use("/algorithmTest", async (req, res)=>{
+  res.send(await algorithm(req.body));
+});
+
 // Manejo de errores
 app.use(notFound);
 app.use(errorHandler);
@@ -58,6 +64,7 @@ async function startServer() {
     console.log("Database connection successful");
 
     await initParams();
+    getAmbulances();
     console.log("Initialized parameters:", params);
   } catch (error) {
     console.error(error.message);

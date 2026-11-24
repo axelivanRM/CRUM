@@ -3,23 +3,25 @@ import { generateAmbulances } from "../src/utils/test.js";
 import h3 from "h3-js";
 
 algorithm(
-  generateAmbulances(300),
-  {
-    latitude: 19.4326,
-    longitude: -99.1332,
-    h3_index: h3.latLngToCell(19.4326, -99.1332, 5),
+{
+  "contactPhone": "5635049272",
+  "emergencyType": "HIGH",
+  "description": "Patient injured in a traffic accident",
+  "location": {
+    "latitude": 19.5102018,
+    "longitude": -99.1258884,
+    "h3_index": "894995b98b7ffff"
   },
-  {
-    types: {
-      1: {
-        needed: 1,
-        pending: 1,
-      },
-      3: {
-        needed: 1,
-        pending: 1,
-      },
+  "ambulanceRequests": [
+    {
+      "ambulanceType": "TRANSPORT",
+      "quantity": 5
     },
-    pending: 2,
-  },
+    {
+      "ambulanceType": "ADVANCED",
+      "quantity": 10
+    }
+  ],
+  "ignoreDuplicates": false
+}
 );

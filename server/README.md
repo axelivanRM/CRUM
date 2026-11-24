@@ -710,7 +710,8 @@ quantities.
   "description": "Patient injured in a traffic accident",
   "location": {
     "latitude": 19.5102018,
-    "longitude": -99.1258884
+    "longitude": -99.1258884,
+    "h3_index": "894995b98b7ffff"
   },
   "ambulanceRequests": [
     {

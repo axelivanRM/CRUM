@@ -2,9 +2,9 @@ import { io } from "socket.io-client";
 import { latLngToCell } from "h3-js";
 
 // Configuración
-const TOTAL_CLIENTES = 300;
-const INTERVALO_MIN = 30000;
-const INTERVALO_MAX = 30000;
+const TOTAL_CLIENTES = 100;
+const INTERVALO_MIN = 5000;
+const INTERVALO_MAX = 5000;
 
 // Resolución H3
 const H3_RESOLUTION = 9;
@@ -17,7 +17,7 @@ const CDMX_BOUNDS = {
   maxLong: -98.94,
 };
 
-const AMBULANCE_TYPES = ["BASIC", "ADVANCED", "INTENSIVE_CARE"];
+const AMBULANCE_TYPES = ["BASIC", "ADVANCED", "INTENSIVE_CARE", "TRANSPORT"];
 const OPERATIONAL_BASES = ["CRUM", "ERUM", "IMSS", "ISSSTE", "CRUZ_ROJA"];
 const AVAILABILITY_STATUSES = [
   "AVAILABLE",
@@ -93,7 +93,7 @@ console.log(`🚀 Iniciando simulación de ${TOTAL_CLIENTES} ambulancias...\n`);
 
 // Crear clientes
 for (let i = 0; i < TOTAL_CLIENTES; i++) {
-  await new Promise((resolve) => setTimeout(resolve, aleatorioEntero(0, 3000)));
+  await new Promise((resolve) => setTimeout(resolve, aleatorioEntero(0, 1000)));
 
   const socket = io("http://localhost:3000", {
     auth: {
