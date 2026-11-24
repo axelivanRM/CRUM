@@ -31,8 +31,8 @@ export async function calculateETA(ambulances, emergencie) {
       waypoint: {
         location: {
           latLng: {
-            latitude: ambulance.latitude,
-            longitude: ambulance.longitude,
+            latitude: ambulance.location.latitude,
+            longitude: ambulance.location.longitude,
           },
         },
       },
@@ -42,8 +42,8 @@ export async function calculateETA(ambulances, emergencie) {
         waypoint: {
           location: {
             latLng: {
-              latitude: emergencie.latitude,
-              longitude: emergencie.longitude,
+              latitude: emergencie.location.latitude,
+              longitude: emergencie.location.longitude,
             },
           },
         },
@@ -59,7 +59,7 @@ export async function calculateETA(ambulances, emergencie) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-Goog-Api-Key": "AIzaSyBksqj-6lqhuwEca-WStJZrc5UumeDni8k",
+        "X-Goog-Api-Key": process.env.GOOGLE_CLOUD_KEY,
         "X-Goog-FieldMask": "originIndex,duration",
       },
       body: JSON.stringify(request),
@@ -72,10 +72,16 @@ export async function calculateETA(ambulances, emergencie) {
 export function calculateETA_Test(ambulances, emergencie) {
   const ETAs = ambulances.map((ambulance) => {
     const distance = calculateLinearDistance(
-      { latitude: ambulance.latitude, longitude: ambulance.longitude },
-      { latitude: emergencie.latitude, longitude: emergencie.longitude },
+      {
+        latitude: ambulance.location.latitude,
+        longitude: ambulance.location.longitude,
+      },
+      {
+        latitude: emergencie.location.latitude,
+        longitude: emergencie.location.longitude,
+      },
     );
-    const averageSpeed = 15;
+    const averageSpeed = 150;
     const duration = (distance / averageSpeed) * 60;
     return { originIndex: ambulances.indexOf(ambulance), duration };
   });

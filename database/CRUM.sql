@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS operators (
 CREATE TABLE IF NOT EXISTS ambulances (
     ambulance_id INT PRIMARY KEY,
     license_plate VARCHAR(10) NOT NULL,
-    ambulance_type VARCHAR(15) NOT NULL CHECK (ambulance_type IN ("TRANSPORT", "BASIC", "ADVANCED", "INTENSIVE_CARE")),
+    ambulance_type VARCHAR(15) NOT NULL CHECK (ambulance_type IN ("TRANSPORT", "BASIC", "ADVANCED", "INTENSIVE")),
     operational_base VARCHAR(100) NOT NULL,
     CONSTRAINT fk_ambulance_user
         FOREIGN KEY (ambulance_id)

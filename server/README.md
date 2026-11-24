@@ -129,7 +129,7 @@ Value Description
 `TRANSPORT` Patient transport ambulance.
 `BASIC` Basic life support ambulance.
 `ADVANCED` Advanced life support ambulance.
-`INTENSIVE_CARE` Intensive care ambulance.
+`INTENSIVE` Intensive care ambulance.
 
 ### 3.2.2 `availabilityStatus` Values
 
@@ -212,7 +212,7 @@ Extended model for an ambulance.
   "id": 8,
   "username": "ambulance@crum.com",
   "fullName": "Ambulance staff",
-  "role": "AMBULANCE_STAFF"
+  "role": "AMBULANCE"
 }
 ```
 
@@ -713,16 +713,33 @@ quantities.
     "longitude": -99.1258884,
     "h3_index": "894995b98b7ffff"
   },
-  "ambulanceRequests": [
-    {
-      "ambulanceType": "TRANSPORT",
-      "quantity": 1
-    },
-    {
-      "ambulanceType": "ADVANCED",
-      "quantity": 1
+  "ambulances": {
+    "requests": [
+      {
+        "ambulanceType": "TRANSPORT",
+        "quantity": 1
+      },
+      {
+        "ambulanceType": "ADVANCED",
+        "quantity": 1
+      }
+    ],
+    "results": {
+      "types": {
+        "TRANSPORT": {
+          "matches": [],
+          "alternatives": [],
+          "pending": 1
+        },
+        "ADVANCED": {
+          "matches": [],
+          "alternatives": [],
+          "pending": 1
+        }
+      },
+      "pending": 2
     }
-  ],
+  },
   "ignoreDuplicates": false
 }
 ```

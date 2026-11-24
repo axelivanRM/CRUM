@@ -6,8 +6,7 @@ import cors from "cors";
 
 import { query } from "./config/database.config.js";
 import params, { initParams } from "./config/params.config.js";
-import {getAmbulances} from "./config/ambulances.config.js"
-import {algorithm} from "./services/algorithm.service.js"
+import { algorithm } from "./services/algorithm.service.js";
 
 import notFound from "./middlewares/not-found.middleware.js";
 import errorHandler from "./middlewares/error-handler.middleware.js";
@@ -22,12 +21,12 @@ const PORT = process.env.PORT || 8080;
 
 // Middlewares globales
 app.use(helmet());
-app.use(cors(
-  {
+app.use(
+  cors({
     origin: process.env.CLIENT_URL,
-    credentials: true
-  }
-));
+    credentials: true,
+  }),
+);
 app.use(express.json());
 
 // API Routes
@@ -38,7 +37,7 @@ app.use("/users", userRoutes);
 app.use("/auth", authRoutes);
 app.use("/emergencies", emergenciesRoutes);
 
-app.use("/algorithmTest", async (req, res)=>{
+app.use("/algorithmTest", async (req, res) => {
   res.send(await algorithm(req.body));
 });
 
@@ -64,7 +63,6 @@ async function startServer() {
     console.log("Database connection successful");
 
     await initParams();
-    getAmbulances();
     console.log("Initialized parameters:", params);
   } catch (error) {
     console.error(error.message);
